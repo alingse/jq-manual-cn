@@ -1,7 +1,7 @@
 
 # jq 中文手册(v1.5)
 
-开发版本的jq 中文手册请点[这里](../../master/manual.zh_CN.md)
+开发版本的jq 中文手册请点[这里](../master/manual.zh_CN.md)
 
 jq 程序就像一个过滤器：接收输入，并产生输出。有许多内置的过滤器，提取一个对象的特定字段、或是把数字转成字符串，或是大量的其他的标准任务。
 
@@ -15,7 +15,7 @@ jq 程序就像一个过滤器：接收输入，并产生输出。有许多内�
 
 内容:
 
-- [调用jq](#调用jq)
+- [调用jq](#Invokingjq)
 - [基本过滤器](#Basicfilters)
 - [类型和值](#TypesandValues)
 - [内置操作符和函数](#Builtinoperatorsandfunctions)
