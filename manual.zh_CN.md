@@ -165,7 +165,7 @@ You can affect how jq reads and writes its input and output using some command-l
 
 ### <font color=#c7254e>`.foo`,`.foo.bar`</font>
  
-  最简单的*有用*过滤器是`.foo`. 给定一个JSON对象(即字典或hash)做输入，它会给出"foo"键的值，如果没有这个key则给出null.
+  最简单的*有用的*过滤器是`.foo`. 给定一个JSON对象(即字典或hash)做输入，它会给出"foo"键的值，如果没有这个key则给出null.
 
  如果键里含有关键字符，就要用双引号括起来，比如:."foo$".
 
@@ -225,14 +225,16 @@ Output  []
 ```
 
 ### <font color=#c7254e>`.[<string>]`,`.[2]`,`.[10:15]`</font>
-                  
- You can also look up fields of an object using syntax like <code>.[&quot;foo&quot;]</code> (.foo above is a shorthand version of this). This one works for arrays as well, if the key is an integer. Arrays are zero-based (like javascript), so <code>.[2]</code> returns the third element of the array.</p>
 
-<p>The <code>.[10:15]</code> syntax can be used to return a subarray of an array or substring of a string. The array returned by <code>.[10:15]</code> will be of length 5, containing the elements from index 10 (inclusive) to index 15 (exclusive). Either index may be negative (in which case it counts backwards from the end of the array), or omitted (in which case it refers to the start or end of the array).</p>
+可以用像`.["foo"]`这样的语法来查找一个对象的多个域(上面的`.foo`是这种的速写版).这种语法在数组的情况下也可以用，如果key是正整数的话。数组是从0开始计数的（跟javascript类似），所以`.[2]`返回数组的第三个元素。
 
-<p>The <code>.[2]</code> syntax can be used to return the element at the given index. Negative indices are allowed, with -1 referring to the last element, -2 referring to the next to last element, and so on.</p>
+`.[10:15]`这样的语法可以用来返回一个数组的子数组或者一个字符串的子字符串。`.[10:15]`返回的数组长度是5，包含索引从10（包含）到15（不含）的元素。
+ 任一索引都可以是负的（这种情况下会从数组最后往前计数）, 也可以省略掉(这表示从数组开头开始或者一直到数组结尾)。
 
-<p>The <code>.foo</code> syntax only works for simply keys i.e. keys that are all alphanumeric characters. <code>.[&lt;string&gt;]</code> works with keys that contain special characters such as colons and dots. For example <code>.[&quot;foo::bar&quot;]</code> and <code>.[&quot;foo.bar&quot;]</code> work while <code>.foo::bar</code> and <code>.foo.bar</code> would not.</p>
+`.[2]`这样的语法用来返回指定索引的数组元素。负数索引也是可以的，-1 指向最后一个元素，-2指向倒数第二个元素，以此类推。
+
+`.foo`这样的语法只在简单的key的情况下有用，比如，key都是字母和数组组合的字符。`.[<string>]`可以在key包含特殊字符如冒号和点的情况下有用，比如，`.["foo::bar"]`和`.["foo.bar"]`就能正常工作而`.foo::bar`和`.foo.bar`就不行。
+
 
 <p>The <code>?</code> “operator” can also be used with the slice operator, as in <code>.[10:15]?</code>, which outputs values where the inputs are slice-able.</p>
 
