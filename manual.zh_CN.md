@@ -1,3 +1,6 @@
+---
+title : jq 中文手册
+---
 
 # jq 中文手册(v1.5)
 
@@ -29,13 +32,14 @@ jq 程序就像一个过滤器：接收输入，并产生输出。有许多内�
 - [模版](#Modules)
 
 
-## [调用jq](#Invokingjq)
+## [调用jq](#Invokingjq) 
 
 jq filters run on a stream of JSON data. The input to jq is parsed as a sequence of whitespace-separated JSON values which are passed through the provided filter one at a time. The output(s) of the filter are written to standard out, again as a sequence of whitespace-separated JSON data.
 
-Note: it is important to mind the shell’s quoting rules. As a general rule it’s best to always quote (with single-quote characters) the jq program, as too many characters with special meaning to jq are also shell meta-characters. For example, <code>jq
-&quot;foo&quot;</code> will fail on most Unix shells because that will be the same as <code>jq foo</code>, which will generally fail because <code>foo is not
-defined</code>. When using the Windows command shell (cmd.exe) it’s best to use double quotes around your jq program when given on the command-line (instead of the <code>-f program-file</code> option), but then double-quotes in the jq program need backslash escaping.
+Note: it is important to mind the shell’s quoting rules. As a general rule it’s best to always quote (with single-quote characters) the jq program, as too many characters with special meaning to jq are also shell meta-characters. For example,`jq "foo"` 
+will fail on most Unix shells because that will be the same as `jq foo`
+, which will generally fail because `foo is not defined`.
+ When using the Windows command shell (cmd.exe) it’s best to use double quotes around your jq program when given on the command-line (instead of the `-f program-file` option), but then double-quotes in the jq program need backslash escaping.
 
 You can affect how jq reads and writes its input and output using some command-line options:
 
@@ -47,334 +51,182 @@ You can affect how jq reads and writes its input and output using some command-l
 
   Use the <code>application/json-seq</code> MIME type scheme for separating JSON texts in jq’s input and output. This means that an ASCII RS (record separator) character is printed before each value on output and an ASCII LF (line feed) is printed after every output. Input JSON texts that fail to parse are ignored (but warned about), discarding all subsequent input until the next RS. This more also parses the output of jq without the <code>--seq</code> option.
 
-<li>
-<p><code>--stream</code>:</p>
+- `--stream`:
 
-<p>Parse the input in streaming fashion, outputing arrays of path and leaf values (scalars and empty arrays or empty objects). For example, <code>&quot;a&quot;</code> becomes <code>[[],&quot;a&quot;]</code>, and <code>[[],&quot;a&quot;,[&quot;b&quot;]]</code> becomes <code>[[0],[]]</code>, <code>[[1],&quot;a&quot;]</code>, and <code>[[1,0],&quot;b&quot;]</code>.</p>
+ Parse the input in streaming fashion, outputing arrays of path and leaf values (scalars and empty arrays or empty objects). For example, 
 
-<p>This is useful for processing very large inputs. Use this in conjunction with filtering and the <code>reduce</code> and <code>foreach</code> syntax to reduce large inputs incrementally.</p>
-</li>
+ `"a"` becomes `[[],"a"]`, and  `[[],"a",["b"]]` becomes `[[0],[]]`,`[[1],"a"]`
+  , and `[[1,0],"b"]`.
 
-<li>
-<p><code>--slurp</code>/<code>-s</code>:</p>
+	This is useful for processing very large inputs. Use this in conjunction with filtering and the `reduce` and `foreach` syntax to reduce large inputs incrementally.
 
-<p>Instead of running the filter for each JSON object in the input, read the entire input stream into a large array and run the filter just once.</p>
-</li>
+- `--slurp` / `-s`:
 
-<li>
-<p><code>--raw-input</code>/<code>-R</code>:</p>
+	Instead of running the filter for each JSON object in the input, read the entire input stream into a large array and run the filter just once.
+	
+- `--raw-input` / `-R`:
 
-<p>Don’t parse the input as JSON. Instead, each line of text is passed to the filter as a string. If combined with <code>--slurp</code>, then the entire input is passed to the filter as a single long string.</p>
-</li>
+ Don’t parse the input as JSON. Instead, each line of text is passed to the filter as a string. If combined with `--slurp`, then the entire input is passed to the filter as a single long string.
 
-<li>
-<p><code>--null-input</code>/<code>-n</code>:</p>
+- `--null-input` / `-n`:
+  
+  Don’t read any input at all! Instead, the filter is run once using `null` as the input. This is useful when using jq as a simple calculator or to construct JSON data from scratch.
 
-<p>Don’t read any input at all! Instead, the filter is run once using <code>null</code> as the input. This is useful when using jq as a simple calculator or to construct JSON data from scratch.</p>
-</li>
+- `--compact-output` / `-c`:  
 
-<li>
-<p><code>--compact-output</code> / <code>-c</code>:</p>
+   By default, jq pretty-prints JSON output. Using this option will result in more compact output by instead putting each JSON object on a single line.
 
-<p>By default, jq pretty-prints JSON output. Using this option will result in more compact output by instead putting each JSON object on a single line.</p>
-</li>
+- `--tab`:
+  
+   Use a tab for each indentation level instead of two spaces.
 
-<li>
-<p><code>--tab</code>:</p>
+- `--indent n`:
 
-<p>Use a tab for each indentation level instead of two spaces.</p>
-</li>
+   Use the given number of spaces (no more than 8) for indentation.
 
-<li>
-<p><code>--indent n</code>:</p>
+- `--color-output` / `-C` and `--monochrome-output` / `-M`:
 
-<p>Use the given number of spaces (no more than 8) for indentation.</p>
-</li>
+  By default, jq outputs colored JSON if writing to a terminal. You can force it to produce color even if writing to a pipe or a file using `-C`, and disable color with `-M`.
+  
+- `--ascii-output` / `-a`:
 
-<li>
-<p><code>--color-output</code> / <code>-C</code> and <code>--monochrome-output</code> / <code>-M</code>:</p>
+ jq usually outputs non-ASCII Unicode codepoints as UTF-8, even if the input specified them as escape sequences (like “\u03bc”). Using this option, you can force jq to produce pure ASCII output with every non-ASCII character replaced with the equivalent escape sequence.
 
-<p>By default, jq outputs colored JSON if writing to a terminal. You can force it to produce color even if writing to a pipe or a file using <code>-C</code>, and disable color with <code>-M</code>.</p>
-</li>
+- `--unbuffered`:
 
-<li>
-<p><code>--ascii-output</code> / <code>-a</code>:</p>
+  Flush the output after each JSON object is printed (useful if you’re piping a slow data source into jq and piping jq’s output elsewhere).
 
-<p>jq usually outputs non-ASCII Unicode codepoints as UTF-8, even if the input specified them as escape sequences (like “\u03bc”). Using this option, you can force jq to produce pure ASCII output with every non-ASCII character replaced with the equivalent escape sequence.</p>
-</li>
+- `--sort-keys` / `-S`:
 
-<li>
-<p><code>--unbuffered</code></p>
+  Output the fields of each object with the keys in sorted order.
 
-<p>Flush the output after each JSON object is printed (useful if you’re piping a slow data source into jq and piping jq’s output elsewhere).</p>
-</li>
+- `--raw-output` / `-r`:
 
-<li>
-<p><code>--sort-keys</code> / <code>-S</code>:</p>
+ With this option, if the filter’s result is a string then it will be written directly to standard output rather than being formatted as a JSON string with quotes. This can be useful for making jq filters talk to non-JSON-based systems.
+ 
+- `--join-output` / `-j`:
 
-<p>Output the fields of each object with the keys in sorted order.</p>
-</li>
+ Like `-r` but jq won’t print a newline after each output.
 
-<li>
-<p><code>--raw-output</code> / <code>-r</code>:</p>
+- `-f filename` / `--from-file filename`:
 
-<p>With this option, if the filter’s result is a string then it will be written directly to standard output rather than being formatted as a JSON string with quotes. This can be useful for making jq filters talk to non-JSON-based systems.</p>
-</li>
+ Read filter from the file rather than from a command line, like awk’s -f option. You can also use ‘#’ to make comments.
 
-<li>
-<p><code>--join-output</code> / <code>-j</code>:</p>
+- `-Ldirectory ` / `-L directory`:
 
-<p>Like <code>-r</code> but jq won’t print a newline after each output.</p>
-</li>
+ Prepend <code>directory</code> to the search list for modules. If this option is used then no builtin search list is used. See the section on modules below. 
 
-<li>
-<p><code>-f filename</code> / <code>--from-file filename</code>:</p>
+- `-e` / `--exit-status`:
 
-<p>Read filter from the file rather than from a command line, like awk’s -f option. You can also use ‘#’ to make comments.</p>
-</li>
+ Sets the exit status of jq to 0 if the last output values was neither `false` nor `null`, 1 if the last output value was either `false` or `null`, or 4 if no valid result was ever produced. Normally jq exits with 2 if there was any usage problem or system error, 3 if there was a jq program compile error, or 0 if the jq program ran.
 
-<li>
-<p><code>-Ldirectory</code> / <code>-L directory</code>:</p>
+- `--arg name value`:
 
-<p>Prepend <code>directory</code> to the search list for modules. If this option is used then no builtin search list is used. See the section on modules below.</p>
-</li>
+	This option passes a value to the jq program as a predefined variable. If you run jq with `--arg foo bar`, then `$foo` is available in the program and has the value `"bar"`. Note that `value` will be treated as a string, so `--arg foo 123` will bind `$foo` to `"123"`.
 
-<li>
-<p><code>-e</code> / <code>--exit-status</code>:</p>
+- `--argjson name JSON-text`:
 
-<p>Sets the exit status of jq to 0 if the last output values was neither <code>false</code> nor <code>null</code>, 1 if the last output value was either <code>false</code> or <code>null</code>, or 4 if no valid result was ever produced. Normally jq exits with 2 if there was any usage problem or system error, 3 if there was a jq program compile error, or 0 if the jq program ran.</p>
-</li>
+ This option passes a JSON-encoded value to the jq program as a predefined variable. If you run jq with `--argjson foo 123`, then `$foo` is available in the program and has the value `123`.
+ 
+- `--slurpfile variable-name filename`:
 
-<li>
-<p><code>--arg name value</code>:</p>
+ This option reads all the JSON texts in the named file and binds an array of the parsed JSON values to the given global variable. If you run jq with `--argfile foo bar`, then `$foo` is available in the program and has an array whose elements correspond to the texts in the file named `bar`.
 
-<p>This option passes a value to the jq program as a predefined variable. If you run jq with <code>--arg foo bar</code>, then <code>$foo</code> is available in the program and has the value <code>&quot;bar&quot;</code>. Note that <code>value</code> will be treated as a string, so <code>--arg foo 123</code> will bind <code>$foo</code> to <code>&quot;123&quot;</code>.</p>
-</li>
+- `--argfile variable-name filename`:
+ 
+ Do not use. Use `--slurpfile` instead.
 
-<li>
-<p><code>--argjson name JSON-text</code>:</p>
+  (This option is like `--slurpfile`, but when the file has just one text, then that is used, else an array of texts is used as in `--slurpfile`.)
 
-<p>This option passes a JSON-encoded value to the jq program as a predefined variable. If you run jq with <code>--argjson foo 123</code>, then <code>$foo</code> is available in the program and has the value <code>123</code>.</p>
-</li>
+- `--run-tests [filename]`:
 
-<li>
-<p><code>--slurpfile variable-name filename</code>:</p>
+ Runs the tests in the given file or standard input. This must be the last option given and does not honor all preceding options. The input consists of comment lines, empty lines, and program lines followed by one input line, as many lines of output as are expected (one per output), and a terminating empty line. Compilation failure tests start with a line containing only “%%FAIL”, then a line containing the program to compile, then a line containing an error message to compare to the actual.
 
-<p>This option reads all the JSON texts in the named file and binds an array of the parsed JSON values to the given global variable. If you run jq with <code>--argfile foo bar</code>, then <code>$foo</code> is available in the program and has an array whose elements correspond to the texts in the file named <code>bar</code>.</p>
-</li>
-
-<li>
-<p><code>--argfile variable-name filename</code>:</p>
-
-<p>Do not use. Use <code>--slurpfile</code> instead.</p>
-
-<p>(This option is like <code>--slurpfile</code>, but when the file has just one text, then that is used, else an array of texts is used as in <code>--slurpfile</code>.)</p>
-</li>
-
-<li>
-<p><code>--run-tests [filename]</code>:</p>
-
-<p>Runs the tests in the given file or standard input. This must be the last option given and does not honor all preceding options. The input consists of comment lines, empty lines, and program lines followed by one input line, as many lines of output as are expected (one per output), and a terminating empty line. Compilation failure tests start with a line containing only “%%FAIL”, then a line containing the program to compile, then a line containing an error message to compare to the actual.</p>
-
-<p>Be warned that this option can change backwards-incompatibly.</p>
-</li>
-</ul>
+ Be warned that this option can change backwards-incompatibly.
 
 
 
-<h2 id="Basicfilters">基本过滤器</h2>
-<h3 id="."><code>.</code></h3>
+##  [基本过滤器](#Basicfilters)
 
-这个绝对最简单（也最平常）的过滤器是 `.｀
+### <font color=#c7254e>`.`</font>
 
-## sss
+绝对最简单（也最平常）的过滤器是 `.｀，这是一个接收输入并原样输出的过滤器。
+
+因为jq默认会优美打印所有的输出，这个小程序可以用来格式化一些JSON输出，比如`curl`。
+
+[Example](#example1)
+
+|            | jq  '.'         | 
+| -----------|:---------------:| 
+| **Input**  | "Hello, world!" | 
+| **Output** | "Hello, world!" | 
 
 
-The absolute simplest (and least interesting) filter is <code>.</code>. This is a filter that takes its input and produces it unchanged as output.
 
-Since jq by default pretty-prints all output, this trivial program can be a useful way of formatting JSON output from, say, <code>curl</code>.
+### <font color=#c7254e>`.foo`,`.foo.bar`</font>
+ 
+  最简单的*有用*过滤器是`.foo`. 给定一个JSON对象(即字典或hash)做输入，它会给出"foo"键的值，如果没有这个key则给出null.
+
+ 如果键里含有关键字符，就要用双引号括起来，比如:."foo$".
+
+一个形如`.foo.bar`的过滤器是`.foo|.bar`的对等写法。
+
+[Examples](#example2)
+
+```jq
+        jq  '.foo'
+--------------------
+Input   {"foo": 42, "bar": "less interesting data"}
+Output  42
+```
+```jq
+        jq  '.foo'
+--------------------
+Input   {"notfoo": true, "alsonotfoo": false}
+Output  null
+```
+```jq
+        jq  '.["foo"]'
+--------------------
+Input   {"foo": 42}
+Output  42
+```
 
 
+### <font color=#c7254e>`.foo?`</font>
+                 
+ 就跟`.foo`差不多,但是当`.`不是一个数组或一个对象报错时，不会输出。
+ 
+[Examples](#example3)
 
+```jq
+        jq  '.foo?'
+--------------------
+Input   {"foo": 42, "bar": "less interesting data"}
+Output  42
+```
+```jq
+        jq  '.foo?'
+--------------------
+Input   {"notfoo": true, "alsonotfoo": false}
+Output  null
+```
+```jq
+        jq  '.["foo"]?'
+--------------------
+Input   {"foo": 42}
+Output  42
+```
+```jq
+        jq  '[.foo?]'
+--------------------
+Input   [1,2]
+Output  []
+```
 
-
-
-<div>
-	<a data-toggle="collapse" href="#example1">
-		Example
-	</a>
-<div id="example1" class="manual-example collapse">                        
-	<table>
-		<tr><th></th><td class="jqprogram">jq '.'</td></tr>
-		<tr><th>Input</th><td>&quot;Hello, world!&quot;</td></tr>
-		<tr><th>Output</th><td>&quot;Hello, world!&quot;</td></tr>
-	</table>
-                        
-</div>
-</div>
+### <font color=#c7254e>`.[<string>]`,`.[2]`,`.[10:15]`</font>
                   
-
-<section id=".foo,.foo.bar">
-                  <h3>
-                    
-<code>.foo</code>, <code>.foo.bar</code>
-
-                    
-                  </h3>
-                  
-<p>The simplest <em>useful</em> filter is <code>.foo</code>. When given a JSON object (aka dictionary or hash) as input, it produces the value at the key “foo”, or null if there’s none present.</p>
-
-<p>If the key contains special characters, you need to surround it with double quotes like this: <code>.&quot;foo$&quot;</code>.</p>
-
-<p>A filter of the form <code>.foo.bar</code> is equivalent to <code>.foo|.bar</code>.</p>
-
-
-                  
-                    <div>
-                      
-                      <a data-toggle="collapse" href="#example2">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example2" class="manual-example collapse">
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.foo'</td></tr>
-                            <tr><th>Input</th><td>{&quot;foo&quot;: 42, &quot;bar&quot;: &quot;less interesting data&quot;}</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>42</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.foo'</td></tr>
-                            <tr><th>Input</th><td>{&quot;notfoo&quot;: true, &quot;alsonotfoo&quot;: false}</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>null</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[&quot;foo&quot;]'</td></tr>
-                            <tr><th>Input</th><td>{&quot;foo&quot;: 42}</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>42</td>
-                              </tr>
-                            
-                          </table>
-                        
-                      </div>
-                    </div>
-                  
-                </section>
-              
-                <section id=".foo?">
-                  <h3>
-                    
-<code>.foo?</code>
-
-                    
-                  </h3>
-                  
-<p>Just like <code>.foo</code>, but does not output even an error when <code>.</code> is not an array or an object.</p>
-
-
-                  
-                    <div>
-                      
-                      <a data-toggle="collapse" href="#example3">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example3" class="manual-example collapse">
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.foo?'</td></tr>
-                            <tr><th>Input</th><td>{&quot;foo&quot;: 42, &quot;bar&quot;: &quot;less interesting data&quot;}</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>42</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.foo?'</td></tr>
-                            <tr><th>Input</th><td>{&quot;notfoo&quot;: true, &quot;alsonotfoo&quot;: false}</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>null</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[&quot;foo&quot;]?'</td></tr>
-                            <tr><th>Input</th><td>{&quot;foo&quot;: 42}</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>42</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[.foo?]'</td></tr>
-                            <tr><th>Input</th><td>[1,2]</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>[]</td>
-                              </tr>
-                            
-                          </table>
-                        
-                      </div>
-                    </div>
-                  
-                </section>
-              
-                <section id=".[<string>],.[2],.[10:15]">
-                  <h3>
-                    
-<code>.[&lt;string&gt;]</code>, <code>.[2]</code>, <code>.[10:15]</code>
-
-                    
-                  </h3>
-                  
-<p>You can also look up fields of an object using syntax like <code>.[&quot;foo&quot;]</code> (.foo above is a shorthand version of this). This one works for arrays as well, if the key is an integer. Arrays are zero-based (like javascript), so <code>.[2]</code> returns the third element of the array.</p>
+ You can also look up fields of an object using syntax like <code>.[&quot;foo&quot;]</code> (.foo above is a shorthand version of this). This one works for arrays as well, if the key is an integer. Arrays are zero-based (like javascript), so <code>.[2]</code> returns the third element of the array.</p>
 
 <p>The <code>.[10:15]</code> syntax can be used to return a subarray of an array or substring of a string. The array returned by <code>.[10:15]</code> will be of length 5, containing the elements from index 10 (inclusive) to index 15 (exclusive). Either index may be negative (in which case it counts backwards from the end of the array), or omitted (in which case it refers to the start or end of the array).</p>
 
