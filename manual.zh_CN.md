@@ -11,7 +11,7 @@ jq 程序就像一个过滤器：接收输入，并产生输出。有许多内�
 
 切记每个过滤器都有一个输入和一个输出。即使像"hello"或者42这样的常量都是过滤器－他们接受输入但是只产生同样的常量作为输出罢了。操作符可以结合两个过滤器，比如 **加** , 一般是给两个过滤器同样的输入，并把结果连接起来。所以你可以实现一个求平均过滤器，即`add/length` － 把输入数组分给`add`过滤器和`length`过滤器，然后做了一个除法。
 
-但是这个可能有些超前了。:),接着看一些简单的:
+但是这个可能有些超前了。: ),接着看一些简单的:
 
 内容:
 
@@ -29,8 +29,7 @@ jq 程序就像一个过滤器：接收输入，并产生输出。有许多内�
 - [模版](#Modules)
 
 
-
-<h2 id="Invokingjq">调用jq</h2>
+## [调用jq](#Invokingjq)
 
 jq filters run on a stream of JSON data. The input to jq is parsed as a sequence of whitespace-separated JSON values which are passed through the provided filter one at a time. The output(s) of the filter are written to standard out, again as a sequence of whitespace-separated JSON data.
 
@@ -181,55 +180,41 @@ You can affect how jq reads and writes its input and output using some command-l
 </li>
 </ul>
 
-              
-            </section>
-          
-            <section id="Basicfilters">
-              <h2>Basic filters</h2>
-              
-              
-                <section id=".">
-                  <h3>
-                    
-<code>.</code>
-
-                    
-                  </h3>
-                  
-<p>The absolute simplest (and least interesting) filter is <code>.</code>. This is a filter that takes its input and produces it unchanged as output.</p>
-
-<p>Since jq by default pretty-prints all output, this trivial program can be a useful way of formatting JSON output from, say, <code>curl</code>.</p>
 
 
-                  
-                    <div>
-                      
-                      <a data-toggle="collapse" href="#example1">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example1" class="manual-example collapse">
+<h2 id="Basicfilters">基本过滤器</h2>
+<h3 id="."><code>.</code></h3>
+
+这个绝对最简单（也最平常）的过滤器是 `.｀
+
+## sss
+
+
+The absolute simplest (and least interesting) filter is <code>.</code>. This is a filter that takes its input and produces it unchanged as output.
+
+Since jq by default pretty-prints all output, this trivial program can be a useful way of formatting JSON output from, say, <code>curl</code>.
+
+
+
+
+
+
+<div>
+	<a data-toggle="collapse" href="#example1">
+		Example
+	</a>
+<div id="example1" class="manual-example collapse">                        
+	<table>
+		<tr><th></th><td class="jqprogram">jq '.'</td></tr>
+		<tr><th>Input</th><td>&quot;Hello, world!&quot;</td></tr>
+		<tr><th>Output</th><td>&quot;Hello, world!&quot;</td></tr>
+	</table>
                         
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.'</td></tr>
-                            <tr><th>Input</th><td>&quot;Hello, world!&quot;</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>&quot;Hello, world!&quot;</td>
-                              </tr>
-                            
-                          </table>
-                        
-                      </div>
-                    </div>
+</div>
+</div>
                   
-                </section>
-              
-                <section id=".foo,.foo.bar">
+
+<section id=".foo,.foo.bar">
                   <h3>
                     
 <code>.foo</code>, <code>.foo.bar</code>
