@@ -14,7 +14,7 @@ jq 程序就像一个过滤器：接收输入，并产生输出。有许多内�
 
 切记每个过滤器都有一个输入和一个输出。即使像"hello"或者42这样的常量都是过滤器－他们接受输入但是只产生同样的常量作为输出罢了。操作符可以结合两个过滤器，比如 **加** , 一般是给两个过滤器同样的输入，并把结果连接起来。所以你可以实现一个求平均过滤器，即`add/length` － 把输入数组分给`add`过滤器和`length`过滤器，然后做了一个除法。
 
-但是这个可能有些超前了。: ),接着看一些简单的:
+但是说这个可能有些超前了。: ),接着看一些简单的:
 
 内容:
 
@@ -33,23 +33,20 @@ jq 程序就像一个过滤器：接收输入，并产生输出。有许多内�
 
 
 ## [调用jq](#Invokingjq) 
+jq的过滤器运行在一个JSON数据流上.jq的输入被解析为一系列由空白符分隔的JSON数据，然后一次一个的传给提供的过滤器，过滤器的输出会被写入标准输出，也是一系列的空白符分隔的JSON数据。
 
-jq filters run on a stream of JSON data. The input to jq is parsed as a sequence of whitespace-separated JSON values which are passed through the provided filter one at a time. The output(s) of the filter are written to standard out, again as a sequence of whitespace-separated JSON data.
+注意：切记shell的引号规则。一般来说，最好一直都给jq程序加引号（用单引号）,因为需要jq中有特殊含义的字符也是shell元字符。比如，`jq "foo"`在大多数的Unix shells里会失败，因为是跟`jq foo`的效果一样，通常是因为`foo is not defined`。
+当使用windows 命令行（cmd.exe）时，最好使用双引号括起你的jq程序（当不使用 `-f program-file`选项时）,但是程序里面的双引号就需要使用`\`来转义了。
 
-Note: it is important to mind the shell’s quoting rules. As a general rule it’s best to always quote (with single-quote characters) the jq program, as too many characters with special meaning to jq are also shell meta-characters. For example,`jq "foo"` 
-will fail on most Unix shells because that will be the same as `jq foo`
-, which will generally fail because `foo is not defined`.
- When using the Windows command shell (cmd.exe) it’s best to use double quotes around your jq program when given on the command-line (instead of the `-f program-file` option), but then double-quotes in the jq program need backslash escaping.
-
-You can affect how jq reads and writes its input and output using some command-line options:
+可以使用下面的 命令行选项 来控制 jq 如果读写输入和输出： 
 
 - `--version`:
   
-  Output the jq version and exit with zero.
+  输出 jq 的版本并退出，退出状态为0
 
 - `--seq`:
 
-  Use the <code>application/json-seq</code> MIME type scheme for separating JSON texts in jq’s input and output. This means that an ASCII RS (record separator) character is printed before each value on output and an ASCII LF (line feed) is printed after every output. Input JSON texts that fail to parse are ignored (but warned about), discarding all subsequent input until the next RS. This more also parses the output of jq without the <code>--seq</code> option.
+  Use the `application/json-seq` MIME type scheme for separating JSON texts in jq’s input and output. This means that an ASCII RS (record separator) character is printed before each value on output and an ASCII LF (line feed) is printed after every output. Input JSON texts that fail to parse are ignored (but warned about), discarding all subsequent input until the next RS. This more also parses the output of jq without the <code>--seq</code> option.
 
 - `--stream`:
 
@@ -165,7 +162,7 @@ You can affect how jq reads and writes its input and output using some command-l
 
 ### <font color=#c7254e>`.foo`,`.foo.bar`</font>
  
-  最简单的*有用的*过滤器是`.foo`. 给定一个JSON对象(即字典或hash)做输入，它会给出"foo"键的值，如果没有这个key则给出null.
+  最简单的*有用的*过滤器是`.foo`. 给定一个JSON object(即字典或hash)做输入，它会给出"foo"键的值，如果没有这个key则给出null.
 
  如果键里含有关键字符，就要用双引号括起来，比如:."foo$".
 
@@ -195,7 +192,7 @@ Output  42
 
 ### <font color=#c7254e>`.foo?`</font>
                  
- 就跟`.foo`差不多,但是当`.`不是一个数组或一个对象报错时，不会输出。
+ 就跟`.foo`差不多,但是当`.`不是一个数组或一个object而报错时，不会输出。
  
 [Examples](#example3)
 
@@ -226,7 +223,7 @@ Output  []
 
 ### <font color=#c7254e>`.[<string>]`,`.[2]`,`.[10:15]`</font>
 
-可以用像`.["foo"]`这样的语法来查找一个对象的多个域(上面的`.foo`是这种的速写版).这种语法在数组的情况下也可以用，如果key是正整数的话。数组是从0开始计数的（跟javascript类似），所以`.[2]`返回数组的第三个元素。
+可以用像`.["foo"]`这样的语法来查找一个object的多个域(上面的`.foo`是这种的速写版).这种语法在数组的情况下也可以用，如果key是正整数的话。数组是从0开始计数的（跟javascript类似），所以`.[2]`返回数组的第三个元素。
 
 `.[10:15]`这样的语法可以用来返回一个数组的子数组或者一个字符串的子字符串。`.[10:15]`返回的数组长度是5，包含索引从10（包含）到15（不含）的元素。
  任一索引都可以是负的（这种情况下会从数组最后往前计数）, 也可以省略掉(这表示从数组开头开始或者一直到数组结尾)。
@@ -235,319 +232,103 @@ Output  []
 
 `.foo`这样的语法只在简单的key的情况下有用，比如，key都是字母和数组组合的字符。`.[<string>]`可以在key包含特殊字符如冒号和点的情况下有用，比如，`.["foo::bar"]`和`.["foo.bar"]`就能正常工作而`.foo::bar`和`.foo.bar`就不行。
 
+`?`”操作符“也可以用在切片操作符上,如`.[10:15]?`，只在可以切片操作的输入上输出值。
 
-<p>The <code>?</code> “operator” can also be used with the slice operator, as in <code>.[10:15]?</code>, which outputs values where the inputs are slice-able.</p>
+[Examples](#example4)
 
-
-                  
-                    <div>
-                      
-                      <a data-toggle="collapse" href="#example4">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example4" class="manual-example collapse">
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[0]'</td></tr>
-                            <tr><th>Input</th><td>[{&quot;name&quot;:&quot;JSON&quot;, &quot;good&quot;:true}, {&quot;name&quot;:&quot;XML&quot;, &quot;good&quot;:false}]</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>{&quot;name&quot;:&quot;JSON&quot;, &quot;good&quot;:true}</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[2]'</td></tr>
-                            <tr><th>Input</th><td>[{&quot;name&quot;:&quot;JSON&quot;, &quot;good&quot;:true}, {&quot;name&quot;:&quot;XML&quot;, &quot;good&quot;:false}]</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>null</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[2:4]'</td></tr>
-                            <tr><th>Input</th><td>[&quot;a&quot;,&quot;b&quot;,&quot;c&quot;,&quot;d&quot;,&quot;e&quot;]</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>[&quot;c&quot;, &quot;d&quot;]</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[2:4]'</td></tr>
-                            <tr><th>Input</th><td>&quot;abcdefghi&quot;</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>&quot;cd&quot;</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[:3]'</td></tr>
-                            <tr><th>Input</th><td>[&quot;a&quot;,&quot;b&quot;,&quot;c&quot;,&quot;d&quot;,&quot;e&quot;]</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>[&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[-2:]'</td></tr>
-                            <tr><th>Input</th><td>[&quot;a&quot;,&quot;b&quot;,&quot;c&quot;,&quot;d&quot;,&quot;e&quot;]</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>[&quot;d&quot;, &quot;e&quot;]</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[-2]'</td></tr>
-                            <tr><th>Input</th><td>[1,2,3]</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>2</td>
-                              </tr>
-                            
-                          </table>
-                        
-                      </div>
-                    </div>
-                  
-                </section>
-              
-                <section id=".[]">
-                  <h3>
-                    
-<code>.[]</code>
-
-                    
-                  </h3>
-                  
-<p>If you use the <code>.[index]</code> syntax, but omit the index entirely, it will return <em>all</em> of the elements of an array. Running <code>.[]</code> with the input <code>[1,2,3]</code> will produce the numbers as three separate results, rather than as a single array.</p>
-
-<p>You can also use this on an object, and it will return all the values of the object.</p>
+```jq
+        jq '.[0]'
+Input   [{"name":"JSON", "good":true}, {"name":"XML", "good":false}]
+Output  {"name":"JSON", "good":true}
+```
+```jq
+       jq '.[2]'
+Input  [{"name":"JSON", "good":true}, {"name":"XML", "good":false}]
+Output null
+```
+```jq
+       jq '.[2:4]'
+Input  ["a","b","c","d","e"]
+Output ["c","d"]
+```
+```jq
+       jq '.[2:4]'
+Input  "abcdefghi"
+Output "cd"
+```
+```jq
+       jq '.[:3]'
+Input  ["a","b","c","d","e"]
+Output ["a","b","c"]
+```
+```jq
+       jq '.[-2:]'
+Input  ["a","b","c","d","e"]
+Output ["d","e"]
+```
+```jq
+       jq '.[-2]'
+Input  [1,2,3]
+Output 2
+```
 
 
-                  
-                    <div>
-                      
-                      <a data-toggle="collapse" href="#example5">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example5" class="manual-example collapse">
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[]'</td></tr>
-                            <tr><th>Input</th><td>[{&quot;name&quot;:&quot;JSON&quot;, &quot;good&quot;:true}, {&quot;name&quot;:&quot;XML&quot;, &quot;good&quot;:false}]</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>{&quot;name&quot;:&quot;JSON&quot;, &quot;good&quot;:true}</td>
-                              </tr>
-                            
-                              <tr>
-                                
-                                  <th></th>
-                                
-                                <td>{&quot;name&quot;:&quot;XML&quot;, &quot;good&quot;:false}</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[]'</td></tr>
-                            <tr><th>Input</th><td>[]</td></tr>
-                            
-                              <tr>
-                                <th>Output</th>
-                                <td><i>none</i></td>
-                              </tr>
-                            
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[]'</td></tr>
-                            <tr><th>Input</th><td>{&quot;a&quot;: 1, &quot;b&quot;: 1}</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>1</td>
-                              </tr>
-                            
-                              <tr>
-                                
-                                  <th></th>
-                                
-                                <td>1</td>
-                              </tr>
-                            
-                          </table>
-                        
-                      </div>
-                    </div>
-                  
-                </section>
-              
-                <section id=".[]?">
-                  <h3>
-                    
-<code>.[]?</code>
+### <font color=#c7254e>`.[]`</font>
 
-                    
-                  </h3>
-                  
-<p>Like <code>.[]</code>, but no errors will be output if . is not an array or object.</p>
+如果是使用`.[index]`语法,但是省略掉索引，就会返回数组的*所有*元素。对输入`[1,2,3]`运行`.[]`会产生3个分开的数。而不是单个数组。
 
+你也可以用在一个object上，它会返回这个object的所有value。
 
-                  
-                </section>
-              
-                <section id=",">
-                  <h3>
-                    
-<code>,</code>
+[Examples](#example5)
 
-                    
-                  </h3>
-                  
-<p>If two filters are separated by a comma, then the input will be fed into both and there will be multiple outputs: first, all of the outputs produced by the left expression, and then all of the outputs produced by the right. For instance, filter <code>.foo, .bar</code>, produces both the “foo” fields and “bar” fields as separate outputs.</p>
+```jq
+       jq '.[]'
+Input  [{"name":"JSON", "good":true}, {"name":"XML", "good":false}]
+Output {"name":"JSON", "good":true}
+       {"name":"XML", "good":false}
+```
+```jq
+       jq '.[]'
+Input  []
+Output none
+```
+```jq
+       jq '.[]'
+Input  {"a":1,"b":1}
+Output 1
+       1
+```
 
+### <font color=#c7254e>`.[]?`</font>
 
-                  
-                    <div>
-                      
-                      <a data-toggle="collapse" href="#example6">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example6" class="manual-example collapse">
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.foo, .bar'</td></tr>
-                            <tr><th>Input</th><td>{&quot;foo&quot;: 42, &quot;bar&quot;: &quot;something else&quot;, &quot;baz&quot;: true}</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>42</td>
-                              </tr>
-                            
-                              <tr>
-                                
-                                  <th></th>
-                                
-                                <td>&quot;something else&quot;</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.user, .projects[]'</td></tr>
-                            <tr><th>Input</th><td>{&quot;user&quot;:&quot;stedolan&quot;, &quot;projects&quot;: [&quot;jq&quot;, &quot;wikiflow&quot;]}</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>&quot;stedolan&quot;</td>
-                              </tr>
-                            
-                              <tr>
-                                
-                                  <th></th>
-                                
-                                <td>&quot;jq&quot;</td>
-                              </tr>
-                            
-                              <tr>
-                                
-                                  <th></th>
-                                
-                                <td>&quot;wikiflow&quot;</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[4,2]'</td></tr>
-                            <tr><th>Input</th><td>[&quot;a&quot;,&quot;b&quot;,&quot;c&quot;,&quot;d&quot;,&quot;e&quot;]</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>&quot;e&quot;</td>
-                              </tr>
-                            
-                              <tr>
-                                
-                                  <th></th>
-                                
-                                <td>&quot;c&quot;</td>
-                              </tr>
-                            
-                          </table>
-                        
-                      </div>
-                    </div>
-                  
-                </section>
-              
-                <section id="|">
-                  <h3>
-                    
-<code>|</code>
+跟`.[]`一样，但是在`.`不是数组或object的情况下不会报错。                  
 
-                    
-                  </h3>
+### <font color=#c7254e>`，`</font>
+如果两个过滤器用逗号分开，那么输入会同时流向它们，并产生多个输出：首先，所有左边表达式产生的输出，然后是右边表达式产生的输出。比如，过滤器`.foo,.bar`会生成"foo"字段的值和"bar"字段的值，并分别输出。
+
+[Examples](#example6)
+
+```jq
+       jq '.foo, .bar'
+Input  {"foo": 42, "bar": "something else", "baz":true}
+Output 42
+       "something else"
+```
+```jq
+	    jq '.user, .projects[]'
+Input	{"user":"stedolan", "projects": ["jq","wikiflow"]}
+Output "stedolan"
+       "jq"
+       "wikiflow"
+```
+```jq
+       jq '.[4,2]'
+Input  ["a","b","c","d","e"]
+Output "e"
+       "c"
+```                        
+<section id="|">
+<h3><code>|</code></h3>
                   
 <p>The | operator combines two filters by feeding the output(s) of the one on the left into the input of the one on the right. It’s pretty much the same as the Unix shell’s pipe, if you’re used to that.</p>
 
