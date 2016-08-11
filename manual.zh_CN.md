@@ -32,7 +32,7 @@ jq 程序就像一个过滤器：接收输入，并产生输出。有许多内�
 - [模版](#Modules)
 
 
-## [调用jq](#Invokingjq) 
+## [调用jq](#Invokingjq)
 jq的过滤器运行在一个JSON数据流上.jq的输入被解析为一系列由空白符分隔的JSON数据，然后一次一个的传给提供的过滤器，过滤器的输出会被写入标准输出，也是一系列的空白符分隔的JSON数据。
 
 注意：切记shell的引号规则。一般来说，最好一直都给jq程序加引号（用单引号）,因为需要jq中有特殊含义的字符也是shell元字符。比如，`jq "foo"`在大多数的Unix shells里会失败，因为是跟`jq foo`的效果一样，通常是因为`foo is not defined`。
@@ -326,56 +326,25 @@ Output "stedolan"
 Input  ["a","b","c","d","e"]
 Output "e"
        "c"
-```                        
-<section id="|">
-<h3><code>|</code></h3>
-                  
-<p>The | operator combines two filters by feeding the output(s) of the one on the left into the input of the one on the right. It’s pretty much the same as the Unix shell’s pipe, if you’re used to that.</p>
+```
+### <font color=#c7254e>`|`</font>
 
-<p>If the one on the left produces multiple results, the one on the right will be run for each of those results. So, the expression <code>.[] | .foo</code> retrieves the “foo” field of each element of the input array.</p>
+`|`操作符结合两个过滤器，把左边过滤器的输出定向到右边过滤器的输入。如果你熟悉管道的话，就知道这和Unix shell的管道(pipe)简直一样。
 
+如果左边的过滤器产生了多个结果，那么右边的过滤器就会在运行在每一个上面。所以，表达式`.[] ｜.foo`就是提取输入数组里每一个元素的"foo"字段。
 
-                  
-                    <div>
-                      
-                      <a data-toggle="collapse" href="#example7">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example7" class="manual-example collapse">
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[] | .name'</td></tr>
-                            <tr><th>Input</th><td>[{&quot;name&quot;:&quot;JSON&quot;, &quot;good&quot;:true}, {&quot;name&quot;:&quot;XML&quot;, &quot;good&quot;:false}]</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>&quot;JSON&quot;</td>
-                              </tr>
-                            
-                              <tr>
-                                
-                                  <th></th>
-                                
-                                <td>&quot;XML&quot;</td>
-                              </tr>
-                            
-                          </table>
-                        
-                      </div>
-                    </div>
-                  
-                </section>
-              
-            </section>
-          
-            <section id="TypesandValues">
-              <h2>Types and Values</h2>
-              
-<p>jq supports the same set of datatypes as JSON - numbers, strings, booleans, arrays, objects (which in JSON-speak are hashes with only string keys), and “null”.</p>
+[Examples](#example7)
+
+```jq
+        jq '.[] | .name'
+Input	 [{"name":"JSON", "good":true}, {"name":"XML","good":false}]
+Output  "JSON"
+        "XML"
+```
+
+## [类型和值](#TypesandValues)
+
+jq 支持JSON里的全部数据类型 - numbers,strings，booleans,arrays,object(就是JSON语中仅由string做键的hash),以及"null"。
 
 <p>Booleans, null, strings and numbers are written the same way as in javascript. Just like everything else in jq, these simple values take an input and produce an output - <code>42</code> is a valid jq expression that takes an input, ignores it, and returns 42 instead.</p>
 
