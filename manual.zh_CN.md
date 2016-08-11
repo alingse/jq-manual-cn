@@ -344,62 +344,30 @@ Output  "JSON"
 
 ## [类型和值](#TypesandValues)
 
-jq 支持JSON里的全部数据类型 - numbers,strings，booleans,arrays,object(就是JSON语中仅由string做键的hash),以及"null"。
+jq 支持JSON里的全部数据类型 - 数值(numbers),字符串(strings),布尔值(booleans),数组(arrays),object(就是JSON语中仅由string做键的hash),以及"null"。
 
-<p>Booleans, null, strings and numbers are written the same way as in javascript. Just like everything else in jq, these simple values take an input and produce an output - <code>42</code> is a valid jq expression that takes an input, ignores it, and returns 42 instead.</p>
-
-              
-                <section id="Arrayconstruction-[]">
-                  <h3>
-                    
-Array construction - <code>[]</code>
-
-                    
-                  </h3>
-                  
-<p>As in JSON, <code>[]</code> is used to construct arrays, as in <code>[1,2,3]</code>. The elements of the arrays can be any jq expression. All of the results produced by all of the expressions are collected into one big array. You can use it to construct an array out of a known quantity of values (as in <code>[.foo, .bar, .baz]</code>) or to “collect” all the results of a filter into an array (as in <code>[.items[].name]</code>)</p>
-
-<p>Once you understand the “,” operator, you can look at jq’s array syntax in a different light: the expression <code>[1,2,3]</code> is not using a built-in syntax for comma-separated arrays, but is instead applying the <code>[]</code> operator (collect results) to the expression 1,2,3 (which produces three different results).</p>
-
-<p>If you have a filter <code>X</code> that produces four results, then the expression <code>[X]</code> will produce a single result, an array of four elements.</p>
+布尔值，null，字符串和数值都和javascript中的的一样。就像jq中的其它东西一样，这些简单值也接收输入产生输出 - `42`是一个合法的jq表达式，接受输入并忽略掉，然后产生42作为输出。
 
 
-                  
-                    <div>
-                      
-                      <a data-toggle="collapse" href="#example8">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example8" class="manual-example collapse">
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[.user, .projects[]]'</td></tr>
-                            <tr><th>Input</th><td>{&quot;user&quot;:&quot;stedolan&quot;, &quot;projects&quot;: [&quot;jq&quot;, &quot;wikiflow&quot;]}</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>[&quot;stedolan&quot;, &quot;jq&quot;, &quot;wikiflow&quot;]</td>
-                              </tr>
-                            
-                          </table>
-                        
-                      </div>
-                    </div>
-                  
-                </section>
-              
-                <section id="Objects-{}">
-                  <h3>
-                    
-Objects - <code>{}</code>
+### <font color=#c7254e>数组结构`[]`</font>
 
-                    
-                  </h3>
-                  
+在JSON中，`[]` 用来构建数组,如[1,2,3]。数组的元素可以是任意的jq表达式,所有这些表达式产生的结果都被合起来组成一个大数组。
+你可以用它来构建一个由已知数量的值组成的数组（比如`[.foo,.bar,.baz]`）或者是"收集"一个过滤器产生的所有输出到一个数组里(比如:`[.items[].name]`)。
+
+一旦你理解了","操作符，就可以从不同角度看jq的数组语句语法:表达式`[1,2,3]`不适使用内建的逗号分隔数组的语法，而是把`[]`操作符应用在表达式1,2,3上面(这个表达式产生3个输出结果。)
+
+如果你有一个过滤器 `X`生成4个输出结果，那么表达式`[X]`会生成一个由四个元素的单个数组的输出。
+
+[Example](#example8)
+
+```jq
+       jq  '[.user, .projects[]]'
+Input  {"user":"stedolan", "projects": ["jq","wikiflow"]}
+Output ["stedolan", "jq", "wikiflow"]
+```
+
+### <font color=#c7254e>Objects`{}`</font>
+
 <p>Like JSON, <code>{}</code> is for constructing objects (aka dictionaries or hashes), as in: <code>{&quot;a&quot;: 42, &quot;b&quot;: 17}</code>.</p>
 
 <p>If the keys are “sensible” (all alphabetic characters), then the quotes can be left off. The value can be any expression (although you may need to wrap it in parentheses if it’s a complicated one), which gets applied to the {} expression’s input (remember, all filters have an input and an output).</p>
