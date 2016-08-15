@@ -368,42 +368,50 @@ Output ["stedolan", "jq", "wikiflow"]
 
 ### <font color=#c7254e>Objects`{}`</font>
 
-<p>Like JSON, <code>{}</code> is for constructing objects (aka dictionaries or hashes), as in: <code>{&quot;a&quot;: 42, &quot;b&quot;: 17}</code>.</p>
+像在JSON一样，`{}`是用来构建对象(也即字典或哈希)的，比如:`{"a":42,"b":17}`.
 
-<p>If the keys are “sensible” (all alphabetic characters), then the quotes can be left off. The value can be any expression (although you may need to wrap it in parentheses if it’s a complicated one), which gets applied to the {} expression’s input (remember, all filters have an input and an output).</p>
+如果key 都是"常规"的（全都是字母）,那么引号就可以省略掉。值可以是任何表达式（不过复杂的情况下，你可能需要用小括号括起来）,这些表达式的输入也是 {} 表达的输入(切记，所有的过滤器都有输入和输出)。
 
-<pre><code>{foo: .bar}</code></pre>
+```jq
+{foo: .bar}
+```
+在给定输`{"bar":42, "baz":43}`的情况下，会生成一个JSON 对象`{"foo":42}`。就可以用这个来选出对象的特定字段：如果输入是一个对象且有"user","title","id"和"content"字段，只想要"user"和"title"字段的话，可以这样写：
 
-<p>will produce the JSON object <code>{&quot;foo&quot;: 42}</code> if given the JSON object <code>{&quot;bar&quot;:42, &quot;baz&quot;:43}</code>. You can use this to select particular fields of an object: if the input is an object with “user”, “title”, “id”, and “content” fields and you just want “user” and “title”, you can write</p>
+```jq
+{user: .user, title: .title}
+```
 
-<pre><code>{user: .user, title: .title}</code></pre>
+因为这种情况很常见，可以简写为这种：`{user,title}`.
 
-<p>Because that’s so common, there’s a shortcut syntax: <code>{user, title}</code>.</p>
+如果其中有一个表达式产生了多个结果，那么就会生成多个字典。如果输入是：
 
-<p>If one of the expressions produces multiple results, multiple dictionaries will be produced. If the input’s</p>
+```jq
+{"user":"stedolan","titles":["JQ Primer", "More JQ"]}
+```
+那么这样的表达式：
 
-<pre><code>{&quot;user&quot;:&quot;stedolan&quot;,&quot;titles&quot;:[&quot;JQ Primer&quot;, &quot;More JQ&quot;]}</code></pre>
+```jq
+{user, title: .titles[]}
+```
+会生成两个输出：
 
-<p>then the expression</p>
+```jq
+{"user":"stedolan", "title": "JQ Primer"}
+{"user":"stedolan", "title": "More JQ"}
+```
 
-<pre><code>{user, title: .titles[]}</code></pre>
+括号括起来的key 表明是里面要作为一个表达式执行的。同样用上面的输入
 
-<p>will produce two outputs:</p>
+```jq
+{(.user): .titles }
+```
+会生成
 
-<pre><code>{&quot;user&quot;:&quot;stedolan&quot;, &quot;title&quot;: &quot;JQ Primer&quot;}
-{&quot;user&quot;:&quot;stedolan&quot;, &quot;title&quot;: &quot;More JQ&quot;}</code></pre>
+```jq
+{"stedolan": ["JQ Primer", "More JQ"]}
+```
 
-<p>Putting parentheses around the key means it will be evaluated as an expression. With the same input as above,</p>
-
-<pre><code>{(.user): .titles}</code></pre>
-
-<p>produces</p>
-
-<pre><code>{&quot;stedolan&quot;: [&quot;JQ Primer&quot;, &quot;More JQ&quot;]}</code></pre>
-
-
-                  
-                    <div>
+<div>
                       
                       <a data-toggle="collapse" href="#example9">
                         <i class="glyphicon glyphicon-chevron-right"></i>
