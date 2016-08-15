@@ -2,6 +2,17 @@
 title : jq 中文手册
 ---
 
+<style type="text/css">
+
+p code {
+      color:#c7254e;
+}
+h3 code {
+      color:#c7254e;
+}
+
+</style>
+
 # jq 中文手册(v1.5)
 
 开发版本的jq 中文手册请点[这里](../master/manual.zh_CN.md)
@@ -145,7 +156,7 @@ jq的过滤器运行在一个JSON数据流上.jq的输入被解析为一系列�
 
 ##  [基本过滤器](#Basicfilters)
 
-### <font color=#c7254e>`.`</font>
+### `.`
 
 绝对最简单（也最平常）的过滤器是 `.｀，这是一个接收输入并原样输出的过滤器。
 
@@ -160,7 +171,7 @@ jq的过滤器运行在一个JSON数据流上.jq的输入被解析为一系列�
 
 
 
-### <font color=#c7254e>`.foo`,`.foo.bar`</font>
+### `.foo`,`.foo.bar`
  
   最简单的*有用的*过滤器是`.foo`. 给定一个JSON object(即字典或hash)做输入，它会给出"foo"键的值，如果没有这个key则给出null.
 
@@ -190,7 +201,7 @@ Output  42
 ```
 
 
-### <font color=#c7254e>`.foo?`</font>
+### `.foo?`
                  
  就跟`.foo`差不多,但是当`.`不是一个数组或一个object而报错时，不会输出。
  
@@ -221,7 +232,7 @@ Input   [1,2]
 Output  []
 ```
 
-### <font color=#c7254e>`.[<string>]`,`.[2]`,`.[10:15]`</font>
+### `.[<string>]`,`.[2]`,`.[10:15]`
 
 可以用像`.["foo"]`这样的语法来查找一个object的多个域(上面的`.foo`是这种的速写版).这种语法在数组的情况下也可以用，如果key是正整数的话。数组是从0开始计数的（跟javascript类似），所以`.[2]`返回数组的第三个元素。
 
@@ -238,11 +249,13 @@ Output  []
 
 ```jq
         jq '.[0]'
+--------------------
 Input   [{"name":"JSON", "good":true}, {"name":"XML", "good":false}]
 Output  {"name":"JSON", "good":true}
 ```
 ```jq
        jq '.[2]'
+--------------------
 Input  [{"name":"JSON", "good":true}, {"name":"XML", "good":false}]
 Output null
 ```
@@ -253,27 +266,31 @@ Output ["c","d"]
 ```
 ```jq
        jq '.[2:4]'
+--------------------
 Input  "abcdefghi"
 Output "cd"
 ```
 ```jq
        jq '.[:3]'
+--------------------
 Input  ["a","b","c","d","e"]
 Output ["a","b","c"]
 ```
 ```jq
        jq '.[-2:]'
+--------------------
 Input  ["a","b","c","d","e"]
 Output ["d","e"]
 ```
 ```jq
        jq '.[-2]'
+--------------------
 Input  [1,2,3]
 Output 2
 ```
 
 
-### <font color=#c7254e>`.[]`</font>
+### `.[]`
 
 如果是使用`.[index]`语法,但是省略掉索引，就会返回数组的*所有*元素。对输入`[1,2,3]`运行`.[]`会产生3个分开的数。而不是单个数组。
 
@@ -283,39 +300,44 @@ Output 2
 
 ```jq
        jq '.[]'
+--------------------
 Input  [{"name":"JSON", "good":true}, {"name":"XML", "good":false}]
 Output {"name":"JSON", "good":true}
        {"name":"XML", "good":false}
 ```
 ```jq
        jq '.[]'
+--------------------
 Input  []
 Output none
 ```
 ```jq
        jq '.[]'
+--------------------
 Input  {"a":1,"b":1}
 Output 1
        1
 ```
 
-### <font color=#c7254e>`.[]?`</font>
+### `.[]?`
 
 跟`.[]`一样，但是在`.`不是数组或object的情况下不会报错。                  
 
-### <font color=#c7254e>`，`</font>
+### `，`
 如果两个过滤器用逗号分开，那么输入会同时流向它们，并产生多个输出：首先，所有左边表达式产生的输出，然后是右边表达式产生的输出。比如，过滤器`.foo,.bar`会生成"foo"字段的值和"bar"字段的值，并分别输出。
 
 [Examples](#example6)
 
 ```jq
        jq '.foo, .bar'
+----------------------
 Input  {"foo": 42, "bar": "something else", "baz":true}
 Output 42
        "something else"
 ```
 ```jq
 	    jq '.user, .projects[]'
+-------------------------------
 Input	{"user":"stedolan", "projects": ["jq","wikiflow"]}
 Output "stedolan"
        "jq"
@@ -323,11 +345,12 @@ Output "stedolan"
 ```
 ```jq
        jq '.[4,2]'
+--------------------
 Input  ["a","b","c","d","e"]
 Output "e"
        "c"
 ```
-### <font color=#c7254e>`|`</font>
+### `|`
 
 `|`操作符结合两个过滤器，把左边过滤器的输出定向到右边过滤器的输入。如果你熟悉管道的话，就知道这和Unix shell的管道(pipe)简直一样。
 
@@ -337,6 +360,7 @@ Output "e"
 
 ```jq
         jq '.[] | .name'
+-------------------------
 Input	 [{"name":"JSON", "good":true}, {"name":"XML","good":false}]
 Output  "JSON"
         "XML"
@@ -349,7 +373,7 @@ jq 支持JSON里的全部数据类型 - 数值(numbers),字符串(strings),布�
 布尔值，null，字符串和数值都和javascript中的的一样。就像jq中的其它东西一样，这些简单值也接收输入产生输出 - `42`是一个合法的jq表达式，接受输入并忽略掉，然后产生42作为输出。
 
 
-### <font color=#c7254e>数组结构`[]`</font>
+### 数组结构`[]`
 
 在JSON中，`[]` 用来构建数组,如[1,2,3]。数组的元素可以是任意的jq表达式,所有这些表达式产生的结果都被合起来组成一个大数组。
 你可以用它来构建一个由已知数量的值组成的数组（比如`[.foo,.bar,.baz]`）或者是"收集"一个过滤器产生的所有输出到一个数组里(比如:`[.items[].name]`)。
@@ -362,11 +386,12 @@ jq 支持JSON里的全部数据类型 - 数值(numbers),字符串(strings),布�
 
 ```jq
        jq  '[.user, .projects[]]'
+-----------------------------------
 Input  {"user":"stedolan", "projects": ["jq","wikiflow"]}
 Output ["stedolan", "jq", "wikiflow"]
 ```
 
-### <font color=#c7254e>Objects`{}`</font>
+### Objects`{}`
 
 像在JSON一样，`{}`是用来构建对象(也即字典或哈希)的，比如:`{"a":42,"b":17}`.
 
@@ -411,185 +436,76 @@ Output ["stedolan", "jq", "wikiflow"]
 {"stedolan": ["JQ Primer", "More JQ"]}
 ```
 
-<div>
-                      
-                      <a data-toggle="collapse" href="#example9">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example9" class="manual-example collapse">
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '{user, title: .titles[]}'</td></tr>
-                            <tr><th>Input</th><td>{&quot;user&quot;:&quot;stedolan&quot;,&quot;titles&quot;:[&quot;JQ Primer&quot;, &quot;More JQ&quot;]}</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>{&quot;user&quot;:&quot;stedolan&quot;, &quot;title&quot;: &quot;JQ Primer&quot;}</td>
-                              </tr>
-                            
-                              <tr>
-                                
-                                  <th></th>
-                                
-                                <td>{&quot;user&quot;:&quot;stedolan&quot;, &quot;title&quot;: &quot;More JQ&quot;}</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '{(.user): .titles}'</td></tr>
-                            <tr><th>Input</th><td>{&quot;user&quot;:&quot;stedolan&quot;,&quot;titles&quot;:[&quot;JQ Primer&quot;, &quot;More JQ&quot;]}</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>{&quot;stedolan&quot;: [&quot;JQ Primer&quot;, &quot;More JQ&quot;]}</td>
-                              </tr>
-                            
-                          </table>
-                        
-                      </div>
-                    </div>
-                  
-                </section>
-              
-            </section>
-          
-            <section id="Builtinoperatorsandfunctions">
-              <h2>Builtin operators and functions</h2>
-              
-<p>Some jq operator (for instance, <code>+</code>) do different things depending on the type of their arguments (arrays, numbers, etc.). However, jq never does implicit type conversions. If you try to add a string to an object you’ll get an error message and no result.</p>
+[Examples](#example9)
 
-              
-                <section id="Addition-+">
-                  <h3>
-                    
-Addition - <code>+</code>
+```jq
+       jq '{user, title: .titles[]}'
+-------------------------------------
+Input  {"user":"stedolan","titles":["JQ Primer", "More JQ"]}
+Output {"user":"stedolan", "title": "JQ Primer"}
+       {"user":"stedolan", "title": "More JQ"}
+```
 
-                    
-                  </h3>
-                  
-<p>The operator <code>+</code> takes two filters, applies them both to the same input, and adds the results together. What “adding” means depends on the types involved:</p>
-
-<ul>
-<li>
-<p><strong>Numbers</strong> are added by normal arithmetic.</p>
-</li>
-
-<li>
-<p><strong>Arrays</strong> are added by being concatenated into a larger array.</p>
-</li>
-
-<li>
-<p><strong>Strings</strong> are added by being joined into a larger string.</p>
-</li>
-
-<li>
-<p><strong>Objects</strong> are added by merging, that is, inserting all the key-value pairs from both objects into a single combined object. If both objects contain a value for the same key, the object on the right of the <code>+</code> wins. (For recursive merge use the <code>*</code> operator.)</p>
-</li>
-</ul>
-
-<p><code>null</code> can be added to any value, and returns the other value unchanged.</p>
+```jq
+       jq '{(.user): .titles}'
+-------------------------------
+Input  {"user":"stedolan","titles":["JQ Primer", "More JQ"]}
+Output {"stedolan": ["JQ Primer", "More JQ"]}
+```
 
 
-                  
-                    <div>
-                      
-                      <a data-toggle="collapse" href="#example10">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example10" class="manual-example collapse">
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.a + 1'</td></tr>
-                            <tr><th>Input</th><td>{&quot;a&quot;: 7}</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>8</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.a + .b'</td></tr>
-                            <tr><th>Input</th><td>{&quot;a&quot;: [1,2], &quot;b&quot;: [3,4]}</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>[1,2,3,4]</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.a + null'</td></tr>
-                            <tr><th>Input</th><td>{&quot;a&quot;: 1}</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>1</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.a + 1'</td></tr>
-                            <tr><th>Input</th><td>{}</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>1</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '{a: 1} + {b: 2} + {c: 3} + {a: 42}'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>{&quot;a&quot;: 42, &quot;b&quot;: 2, &quot;c&quot;: 3}</td>
-                              </tr>
-                            
-                          </table>
-                        
-                      </div>
-                    </div>
-                  
-                </section>
-              
-                <section id="Subtraction--">
-                  <h3>
-                    
-Subtraction - <code>-</code>
+##  [内置操作符和函数](#Builtinoperatorsandfunctions)
 
-                    
-                  </h3>
-                  
+一些jq操作符(举例：`+`) 会因为参数的类型(数组、数值以及等等)而起不同的作用。但是jq 不允许隐式的类型转换（译者：参考javascript）。如果要把一个字符串加到一个对象上只会得到错误提示而不产生任何结果。
+
+
+### 加－`＋`
+
+操作符`+`接收两个过滤器，给它们两份同样的输入，然后把得到的结果结合起来，至于"加"是什么意思，要看涉及的类型：
+
+- **Numbers** 按算术相加
+- **Arrays** 连接（concatenate）成一个大数组
+- **Strings** 连接（join）成一个大字符串
+- **Objects** 通过merge 来相加,即把两个Object的键值对都插入到一个单独的结合的Object中。如果两个object有同样的key，那么右边的会保留。(如果想要递归merge的话，要使用`*`操作符。)
+
+`null`可以加到任何值上去，然后返回一个没有任何改变的值。
+
+[Examples](#example10)
+
+```jq
+       jq '.a + 1'
+--------------------
+Input  {"a": 7}
+Output 8
+```
+```jq
+       jq '.a + .b'
+---------------------
+Input  {"a": [1,2], "b": [3,4]}
+Output [1,2,3,4]
+```
+```jq
+       jq '.a + null'
+-----------------------
+Input  {"a": 1}
+Output 1
+```
+```jq
+       jq '.a + 1'
+--------------------
+Input  {}
+Output 1
+```
+```jq
+       jq '{a: 1} + {b: 2} + {c: 3} + {a: 42}'
+Input  null
+Output {"a": 42, "b": 2, "c": 3}
+```
+
+
+### 减－`-`
+
+        
 <p>As well as normal arithmetic subtraction on numbers, the <code>-</code> operator can be used on arrays to remove all occurrences of the second array’s elements from the first array.</p>
 
 
