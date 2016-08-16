@@ -505,20 +505,11 @@ Output {"a": 42, "b": 2, "c": 3}
 
 ### 减－`-`
 
-        
-<p>As well as normal arithmetic subtraction on numbers, the <code>-</code> operator can be used on arrays to remove all occurrences of the second array’s elements from the first array.</p>
+就和正常的算术减法对数值的操作一样，`-`操作符能用在数组上,从第一个数组中移除所有出现在第二个数组中的元素。
 
+[Examples](#exmaple11)
 
-                  
-                    <div>
-                      
-                      <a data-toggle="collapse" href="#example11">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example11" class="manual-example collapse">
-                        
-                          <table>
+<table>
                             <tr><th></th><td class="jqprogram">jq '4 - .a'</td></tr>
                             <tr><th>Input</th><td>{&quot;a&quot;:3}</td></tr>
                             
