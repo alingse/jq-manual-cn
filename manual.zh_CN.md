@@ -509,142 +509,62 @@ Output {"a": 42, "b": 2, "c": 3}
 
 [Examples](#exmaple11)
 
-<table>
-                            <tr><th></th><td class="jqprogram">jq '4 - .a'</td></tr>
-                            <tr><th>Input</th><td>{&quot;a&quot;:3}</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>1</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '. - [&quot;xml&quot;, &quot;yaml&quot;]'</td></tr>
-                            <tr><th>Input</th><td>[&quot;xml&quot;, &quot;yaml&quot;, &quot;json&quot;]</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>[&quot;json&quot;]</td>
-                              </tr>
-                            
-                          </table>
-                        
-                      </div>
-                    </div>
+```jq
+       jq '4 - .a'
+--------------------
+Input  {"a":3}
+Output 1
+```
+```jq
+       jq '. - ["xml", "yaml"]'
+--------------------------------
+Input  ["xml", "yaml", "json"]
+Output ["json"]
+```
+
+###  乘,除,取模 - `*`,`/`,`%`
                   
-                </section>
-              
-                <section id="Multiplication,division,modulo-*,/,and%">
-                  <h3>
-                    
-Multiplication, division, modulo - <code>*</code>, <code>/</code>, and <code>%</code>
+这些中缀运算符在两个数值上就和预期的一样。除以0会抛出错误，`x % y`计算 x 模上 y。
 
-                    
-                  </h3>
-                  
-<p>These infix operators behave as expected when given two numbers. Division by zero raises an error. <code>x % y</code> computes x modulo y.</p>
+一个字符串乘以一个数会生成这个字符串拼接多次的结果。
+`"x" * 0` 产生**null**。
 
-<p>Multiplying a string by a number produces the concatenation of that string that many times. <code>&quot;x&quot; * 0</code> produces <strong>null</strong>.</p>
+一个字符串除以另一个字符串会用第二个字符串来分割(split)第一个分成数份。
 
-<p>Dividing a string by another splits the first using the second as separators.</p>
+两个object相乘会递归地merge两者: 就和加法的情况类似，但在两个object包含同一个key并且两个value都是object的情况下，会用同样的策略来merge这两个value。
 
-<p>Multiplying two objects will merge them recursively: this works like addition but if both objects contain a value for the same key, and the values are objects, the two are merged with the same strategy.</p>
+[Examples](#example12)
+
+```jq
+       jq '10 / . * 3'
+-----------------------
+Input  5
+Output 6
+```
+```jq
+       jq '. / ", "'
+-----------------------
+Input  "a, b,c,d, e"
+Output ["a","b,c,d","e"]
+```
+```jq
+       jq '{"k": {"a": 1, "b": 2}} * {"k": {"a": 0,"c": 3}}'
+-----------------------------------------------------------
+Input  null
+Output {"k": {"a": 0, "b": 2, "c": 3}}
+```
+```jq
+       jq '.[] | (1 / .)?'
+-----------------------------
+Input  [1,0,-1]
+Output 1
+       -1
+```
+
+### `length`
 
 
-                  
-                    <div>
-                      
-                      <a data-toggle="collapse" href="#example12">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example12" class="manual-example collapse">
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '10 / . * 3'</td></tr>
-                            <tr><th>Input</th><td>5</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>6</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '. / &quot;, &quot;'</td></tr>
-                            <tr><th>Input</th><td>&quot;a, b,c,d, e&quot;</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>[&quot;a&quot;,&quot;b,c,d&quot;,&quot;e&quot;]</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '{&quot;k&quot;: {&quot;a&quot;: 1, &quot;b&quot;: 2}} * {&quot;k&quot;: {&quot;a&quot;: 0,&quot;c&quot;: 3}}'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>{&quot;k&quot;: {&quot;a&quot;: 0, &quot;b&quot;: 2, &quot;c&quot;: 3}}</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[] | (1 / .)?'</td></tr>
-                            <tr><th>Input</th><td>[1,0,-1]</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>1</td>
-                              </tr>
-                            
-                              <tr>
-                                
-                                  <th></th>
-                                
-                                <td>-1</td>
-                              </tr>
-                            
-                          </table>
-                        
-                      </div>
-                    </div>
-                  
-                </section>
-              
-                <section id="length">
-                  <h3>
-                    
-<code>length</code>
-
-                    
-                  </h3>
-                  
-<p>The builtin function <code>length</code> gets the length of various different types of value:</p>
+The builtin function <code>length</code> gets the length of various different types of value:</p>
 
 <ul>
 <li>
