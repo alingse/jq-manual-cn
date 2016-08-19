@@ -563,84 +563,27 @@ Output 1
 
 ### `length`
 
+内置的函数 `length`会得到多种不同的类型值的长度:
 
-The builtin function <code>length</code> gets the length of various different types of value:</p>
+ - **string** 的长度是这个字符串包含的unicode字符的个数(如果是纯ASCII的话，就和JSON-编码的字节的长度一样)
+ - **array** 的长度就是元素的个数。
+ - **object** 的长度是包含键值对的个数。
+ - **null** 的长度是0
+ 
+[Examples](#example13)
 
-<ul>
-<li>
-<p>The length of a <strong>string</strong> is the number of Unicode codepoints it contains (which will be the same as its JSON-encoded length in bytes if it’s pure ASCII).</p>
-</li>
+```jq
+       jq '.[] | length'
+---------------------------
+Input  [[1,2], "string", {"a":2}, null]
+Output 2
+       6
+       1
+       0
+```
 
-<li>
-<p>The length of an <strong>array</strong> is the number of elements.</p>
-</li>
+### `keys`,`keys_unsorted`
 
-<li>
-<p>The length of an <strong>object</strong> is the number of key-value pairs.</p>
-</li>
-
-<li>
-<p>The length of <strong>null</strong> is zero.</p>
-</li>
-</ul>
-
-
-                  
-                    <div>
-                      
-                      <a data-toggle="collapse" href="#example13">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example13" class="manual-example collapse">
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[] | length'</td></tr>
-                            <tr><th>Input</th><td>[[1,2], &quot;string&quot;, {&quot;a&quot;:2}, null]</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>2</td>
-                              </tr>
-                            
-                              <tr>
-                                
-                                  <th></th>
-                                
-                                <td>6</td>
-                              </tr>
-                            
-                              <tr>
-                                
-                                  <th></th>
-                                
-                                <td>1</td>
-                              </tr>
-                            
-                              <tr>
-                                
-                                  <th></th>
-                                
-                                <td>0</td>
-                              </tr>
-                            
-                          </table>
-                        
-                      </div>
-                    </div>
-                  
-                </section>
-              
-                <section id="keys,keys_unsorted">
-                  <h3>
-                    
-<code>keys</code>, <code>keys_unsorted</code>
-
-                    
-                  </h3>
                   
 <p>The builtin function <code>keys</code>, when given an object, returns its keys in an array.</p>
 
