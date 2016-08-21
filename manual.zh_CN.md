@@ -594,13 +594,13 @@ Output 2
 
 [Examples](#example14)
 
-```python
+```jq
        jq 'keys'
 -------------------
 Input  {"abc": 1, "abcd": 2, "Foo": 3}
 Output ["Foo", "abc", "abcd"]
 ```
-```python
+```jq
        jq 'keys'
 -------------------
 Input  [42,3,35]
@@ -610,62 +610,30 @@ Output [0,1,2]
 
 ### `has(key)`
 
-                  
-<p>The builtin function <code>has</code> returns whether the input object has the given key, or the input array has an element at the given index.</p>
 
-<p><code>has($key)</code> has the same effect as checking whether <code>$key</code> is a member of the array returned by <code>keys</code>, although <code>has</code> will be faster.</p>
+内置函数`has`返回输入的object是否含有给定的key,或者返回输入的数组是否在给定索引有元素。
 
+`has($key)`和检查$key是否在`keys`返回的数组里是一样的效果，
+只不过`has`比较快一点。
 
-                  
-                    <div>
-                      
-                      <a data-toggle="collapse" href="#example15">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example15" class="manual-example collapse">
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'map(has(&quot;foo&quot;))'</td></tr>
-                            <tr><th>Input</th><td>[{&quot;foo&quot;: 42}, {}]</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>[true, false]</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'map(has(2))'</td></tr>
-                            <tr><th>Input</th><td>[[0,1], [&quot;a&quot;,&quot;b&quot;,&quot;c&quot;]]</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>[false, true]</td>
-                              </tr>
-                            
-                          </table>
-                        
-                      </div>
-                    </div>
-                  
-                </section>
-              
-                <section id="in">
-                  <h3>
-                    
-<code>in</code>
+[Examples](#examle15)
 
-                    
-                  </h3>
-                  
+```jq
+       jq 'map(has("foo"))'
+-----------------------------
+Input  [{"foo": 42}, {}]
+Output [true, false]
+```
+```jq
+       jq 'map(has(2))'
+-----------------------------
+Input  [[0,1], ["a","b","c"]]
+Output [false, true]
+```
+
+### `in`
+
+           
 <p>The builtin function <code>in</code> returns the input key is in the given object, or the input index corresponds to an element in the given array. It is, essentially, an inversed version of <code>has</code>.</p>
 
 
