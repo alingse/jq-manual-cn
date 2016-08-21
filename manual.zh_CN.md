@@ -584,65 +584,32 @@ Output 2
 
 ### `keys`,`keys_unsorted`
 
-                  
-<p>The builtin function <code>keys</code>, when given an object, returns its keys in an array.</p>
+ 给定内置函数`keys`一个object，函数返回object的所有key组成的数组。             
 
-<p>The keys are sorted “alphabetically”, by unicode codepoint order. This is not an order that makes particular sense in any particular language, but you can count on it being the same for any two objects with the same set of keys, regardless of locale settings.</p>
+返回的key的数组是按照字符顺序排序的，unicode字符的顺序。这样的顺序不会在任何某个特别的语言中产生特别的意义，但是它可以确保任何两个有同样key集的object 可以得到同样的结果，而不用在乎本地设置。
 
-<p>When <code>keys</code> is given an array, it returns the valid indices for that array: the integers from 0 to length-1.</p>
+当`keys`的输入是一个的数组时,会返回这个数组的全部索引:即从0到length -1。
 
-<p>The <code>keys_unsorted</code> function is just like <code>keys</code>, but if the input is an object then the keys will not be sorted, instead the keys will roughly be in insertion order.</p>
+函数`keys_unsorted`和`keys`差不多，只不过输入是object时候，输出的key数组不是排序的，基本上就是插入的顺序。
+
+[Examples](#example14)
+
+```python
+       jq 'keys'
+-------------------
+Input  {"abc": 1, "abcd": 2, "Foo": 3}
+Output ["Foo", "abc", "abcd"]
+```
+```python
+       jq 'keys'
+-------------------
+Input  [42,3,35]
+Output [0,1,2]
+```
 
 
-                  
-                    <div>
-                      
-                      <a data-toggle="collapse" href="#example14">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example14" class="manual-example collapse">
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'keys'</td></tr>
-                            <tr><th>Input</th><td>{&quot;abc&quot;: 1, &quot;abcd&quot;: 2, &quot;Foo&quot;: 3}</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>[&quot;Foo&quot;, &quot;abc&quot;, &quot;abcd&quot;]</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'keys'</td></tr>
-                            <tr><th>Input</th><td>[42,3,35]</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>[0,1,2]</td>
-                              </tr>
-                            
-                          </table>
-                        
-                      </div>
-                    </div>
-                  
-                </section>
-              
-                <section id="has(key)">
-                  <h3>
-                    
-<code>has(key)</code>
+### `has(key)`
 
-                    
-                  </h3>
                   
 <p>The builtin function <code>has</code> returns whether the input object has the given key, or the input array has an element at the given index.</p>
 
