@@ -633,66 +633,28 @@ Output [false, true]
 
 ### `in`
 
-           
-<p>The builtin function <code>in</code> returns the input key is in the given object, or the input index corresponds to an element in the given array. It is, essentially, an inversed version of <code>has</code>.</p>
+内置函数`in`返回输入的key是否在给定的object中，或者是输入的索引是否对应于给定数组的某个元素。实质上，它是`has`的相反版本。
 
+[Examples](#example16)
 
-                  
-                    <div>
-                      
-                      <a data-toggle="collapse" href="#example16">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example16" class="manual-example collapse">
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[] | in({&quot;foo&quot;: 42})'</td></tr>
-                            <tr><th>Input</th><td>[&quot;foo&quot;, &quot;bar&quot;]</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>true</td>
-                              </tr>
-                            
-                              <tr>
-                                
-                                  <th></th>
-                                
-                                <td>false</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'map(in([0,1]))'</td></tr>
-                            <tr><th>Input</th><td>[2, 0]</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>[false, true]</td>
-                              </tr>
-                            
-                          </table>
-                        
-                      </div>
-                    </div>
-                  
-                </section>
-              
-                <section id="path(path_expression)">
-                  <h3>
-                    
-<code>path(path_expression)</code>
+```jq
 
-                    
-                  </h3>
+       jq '.[] | in({"foo": 42})'
+----------------------------------
+Input  ["foo", "bar"]
+Output true
+false
+```
+```jq
+
+       jq 'map(in([0,1]))'
+---------------------------
+Input  [2, 0]
+Output [false, true]
+```
+
+### ｀path(path_expression)｀
+
                   
 <p>Outputs array representations of the given path expression in <code>.</code>. The outputs are arrays of strings (keys in objects0 and/or numbers (array indices.</p>
 
@@ -714,7 +676,7 @@ Output [false, true]
                       </a>
                       <div id="example17" class="manual-example collapse">
                         
-                          <table>
+<table>
                             <tr><th></th><td class="jqprogram">jq 'path(.a[0].b)'</td></tr>
                             <tr><th>Input</th><td>null</td></tr>
                             
@@ -728,7 +690,7 @@ Output [false, true]
                             
                           </table>
                         
-                          <table>
+<table>
                             <tr><th></th><td class="jqprogram">jq '[path(..)]'</td></tr>
                             <tr><th>Input</th><td>{&quot;a&quot;:[{&quot;b&quot;:1}]}</td></tr>
                             
@@ -767,7 +729,7 @@ Output [false, true]
                       </a>
                       <div id="example18" class="manual-example collapse">
                         
-                          <table>
+<table>
                             <tr><th></th><td class="jqprogram">jq 'del(.foo)'</td></tr>
                             <tr><th>Input</th><td>{&quot;foo&quot;: 42, &quot;bar&quot;: 9001, &quot;baz&quot;: 42}</td></tr>
                             
@@ -781,7 +743,7 @@ Output [false, true]
                             
                           </table>
                         
-                          <table>
+<table>
                             <tr><th></th><td class="jqprogram">jq 'del(.[1, 2])'</td></tr>
                             <tr><th>Input</th><td>[&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;]</td></tr>
                             
