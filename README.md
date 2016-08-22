@@ -3,9 +3,9 @@
 
 文档版本、jq版本、项目版本均一致。
 
-[development version](./master/manual.zh_CN.md)
+[development version](../master/manual.zh_CN.md)
 
-[v1.5](./v1.5/manual.zh_CN.md)
+[v1.5](../v1.5/manual.zh_CN.md)
 
 
 ## 简介
@@ -40,6 +40,9 @@ demo2.
 功能:提取一行JSON数据中p值大于0.2的id
 
 窗口:
-<iframe src="http://showterm.io/66cd2262111dbe29437ac" width="640" height="480"></iframe>
+<div>
+<iframe src="http://showterm.io/66cd2262111dbe29437ac" width="640" height="480">
+</iframe>
+</div>
 
 如果窗口没有显示，点击[jq demo2](http://showterm.io/66cd2262111dbe29437ac)
