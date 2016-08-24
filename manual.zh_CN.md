@@ -638,7 +638,6 @@ Output [false, true]
 [Examples](#example16)
 
 ```jq
-
        jq '.[] | in({"foo": 42})'
 ----------------------------------
 Input  ["foo", "bar"]
@@ -653,12 +652,13 @@ Input  [2, 0]
 Output [false, true]
 ```
 
-### ｀path(path_expression)｀
+### `path(path_expression)`
 
-                  
-<p>Outputs array representations of the given path expression in <code>.</code>. The outputs are arrays of strings (keys in objects0 and/or numbers (array indices.</p>
+输出数组表示了以`.`分割的给定路径表达式。输出的数组是多个字符串(object的key)和(或)数字（数组的索引）组成的。
 
-<p>Path expressions are jq expressions like <code>.a</code>, but also <code>.[]</code>. There are two types of path expressions: ones that can match exactly, and ones that cannot. For example, <code>.a.b.c</code> is an exact match path expression, while <code>.a[].b</code> is not.</p>
+路径表达式是jq表达式，像`.a`,也可以是`.[]`。有两种类型的路径表达式:一种是能确切匹配上的，另一种则不是。比如，`.a.b.c`是一个能够确切匹配的路径表达式,而`.a[].b`则不是。
+
+
 
 <p><code>path(exact_path_expression)</code> will produce the array representation of the path expression even if it does not exist in <code>.</code>, if <code>.</code> is <code>null</code> or an array or an object.</p>
 
