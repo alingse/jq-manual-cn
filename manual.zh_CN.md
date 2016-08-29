@@ -683,58 +683,25 @@ Output [[],["a"],["a",0],["a",0,"b"]]
 
 ### `del(path_expression)`
 
-<p>The builtin function <code>del</code> removes a key and its corresponding value from an object.</p>
+内置函数`del`会从object中移除一个key和相对应得value。
 
+[Exmaples](#example18)
 
-                  
-                    <div>
-                      
-                      <a data-toggle="collapse" href="#example18">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example18" class="manual-example collapse">
-                        
-<table>
-                            <tr><th></th><td class="jqprogram">jq 'del(.foo)'</td></tr>
-                            <tr><th>Input</th><td>{&quot;foo&quot;: 42, &quot;bar&quot;: 9001, &quot;baz&quot;: 42}</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>{&quot;bar&quot;: 9001, &quot;baz&quot;: 42}</td>
-                              </tr>
-                            
-                          </table>
-                        
-<table>
-                            <tr><th></th><td class="jqprogram">jq 'del(.[1, 2])'</td></tr>
-                            <tr><th>Input</th><td>[&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;]</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>[&quot;foo&quot;]</td>
-                              </tr>
-                            
-                          </table>
-                        
-                      </div>
-                    </div>
-                  
-                </section>
-              
-                <section id="to_entries,from_entries,with_entries">
-                  <h3>
-                    
-<code>to_entries</code>, <code>from_entries</code>, <code>with_entries</code>
+```jq
+       jq 'del(.foo)'
+---------------------------
+Input  {"foo": 42, "bar": 9001, "baz": 42}
+Output {"bar": 9001, "baz": 42}
+```
+```jq
+       jq 'del(.[1, 2])'
+---------------------------
+Input  ["foo", "bar", "baz"]
+Output ["foo"]
+```
 
-                    
-                  </h3>
+### `to_entries`,`from_entries `,`with_entries `
+
                   
 <p>These functions convert between an object and an array of key-value pairs. If <code>to_entries</code> is passed an object, then for each <code>k: v</code> entry in the input, the output array includes <code>{&quot;key&quot;: k, &quot;value&quot;: v}</code>.</p>
 
