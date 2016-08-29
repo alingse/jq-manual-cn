@@ -1,5 +1,6 @@
 ---
 title : jq 中文手册
+
 ---
 
 <style type="text/css">
@@ -654,69 +655,34 @@ Output [false, true]
 
 ### `path(path_expression)`
 
-输出数组表示了以`.`分割的给定路径表达式。输出的数组是多个字符串(object的key)和(或)数字（数组的索引）组成的。
+输出数组表示了在｀.`里给定的路径表达式。输出的数组是多个字符串(object的key)和(或)数字（数组的索引）组成的。
 
-路径表达式是jq表达式，像`.a`,也可以是`.[]`。有两种类型的路径表达式:一种是能确切匹配上的，另一种则不是。比如，`.a.b.c`是一个能够确切匹配的路径表达式,而`.a[].b`则不是。
+路径表达式是jq表达式，如`.a`,也可以是`.[]`。有两种类型的路径表达式:一种是能确切匹配上的，另一种则不是。比如，`.a.b.c`是一个能够确切匹配的路径表达式,而`.a[].b`则不是。
 
+`path(exact_path_expression)`(译者:精确路径) 会产生表示路径表达式的数组，即使这个精确路径在`.`里并不存在，`.`是 `null`、一个数组或是一个object。
 
+`path(pattern)`（译者:模式路径）会产生表示那些匹配了`pattern`的路径的数组，这些路径存在于`.`里。
 
-<p><code>path(exact_path_expression)</code> will produce the array representation of the path expression even if it does not exist in <code>.</code>, if <code>.</code> is <code>null</code> or an array or an object.</p>
+注意路径表达式和正常的表达式并无二致，表达式`path(..|select(type=="boolean"))`输出所有的在`.`里的路径中，值value类型为boolean的路径，而不是所有的路径。
 
-<p><code>path(pattern)</code> will produce array representations of the paths matching <code>pattern</code> if the paths exist in <code>.</code>.</p>
+[Examples](#example17)
 
-<p>Note that the path expressions are not different from normal expressions. The expression <code>path(..|select(type==&quot;boolean&quot;))</code> outputs all the paths to boolean values in <code>.</code>, and only those paths.</p>
-
-
-                  
-                    <div>
-                      
-                      <a data-toggle="collapse" href="#example17">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example17" class="manual-example collapse">
+```jq
+       jq 'path(.a[0].b)'
+---------------------------
+Input  null
+Output ["a",0,"b"]
+```
+```jq
+       jq '[path(..)]'
+---------------------------
+Input  {"a":[{"b":1}]}
+Output [[],["a"],["a",0],["a",0,"b"]]
+```
                         
-<table>
-                            <tr><th></th><td class="jqprogram">jq 'path(.a[0].b)'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>[&quot;a&quot;,0,&quot;b&quot;]</td>
-                              </tr>
-                            
-                          </table>
-                        
-<table>
-                            <tr><th></th><td class="jqprogram">jq '[path(..)]'</td></tr>
-                            <tr><th>Input</th><td>{&quot;a&quot;:[{&quot;b&quot;:1}]}</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>[[],[&quot;a&quot;],[&quot;a&quot;,0],[&quot;a&quot;,0,&quot;b&quot;]]</td>
-                              </tr>
-                            
-                          </table>
-                        
-                      </div>
-                    </div>
-                  
-                </section>
-              
-                <section id="del(path_expression)">
-                  <h3>
-                    
-<code>del(path_expression)</code>
 
-                    
-                  </h3>
-                  
+### `del(path_expression)`
+
 <p>The builtin function <code>del</code> removes a key and its corresponding value from an object.</p>
 
 
