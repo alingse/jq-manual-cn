@@ -730,101 +730,40 @@ Output {"KEY_a": 1, "KEY_b": 2}
                         
 ### `select(boolean_expression)`
 
-                  
-<p>The function <code>select(foo)</code> produces its input unchanged if <code>foo</code> returns true for that input, and produces no output otherwise.</p>
+函数`select(foo)`会生成原样的输入，如果`foo`在这个输入下返回true，否则不会生成任何结果。
+这对过滤列表非常有用，`[1,2,3] | map(select( . >= 2))` 会返回`[2,3]`
 
-<p>It’s useful for filtering lists: <code>[1,2,3] | map(select(. &gt;= 2))</code> will give you <code>[2,3]</code>.</p>
+[Examples](#example20)
 
+```jq
+       jq 'map(select(. >= 2))'
+--------------------------------
+Input  [1,5,3,0,7]
+Output [5,3,7]
+```
+```jq
+       jq '.[] | select(.id == "second")'
+--------------------------------------------
+Input  [{"id": "first", "val": 1}, {"id": "second", "val": 2}]
+Output {"id": "second", "val": 2}
+```
 
-                  
-                    <div>
-                      
-                      <a data-toggle="collapse" href="#example20">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example20" class="manual-example collapse">
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'map(select(. &gt;= 2))'</td></tr>
-                            <tr><th>Input</th><td>[1,5,3,0,7]</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>[5,3,7]</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[] | select(.id == &quot;second&quot;)'</td></tr>
-                            <tr><th>Input</th><td>[{&quot;id&quot;: &quot;first&quot;, &quot;val&quot;: 1}, {&quot;id&quot;: &quot;second&quot;, &quot;val&quot;: 2}]</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>{&quot;id&quot;: &quot;second&quot;, &quot;val&quot;: 2}</td>
-                              </tr>
-                            
-                          </table>
-                        
-                      </div>
-                    </div>
-                  
-                </section>
-              
-                <section id="arrays,objects,iterables,booleans,numbers,normals,finites,strings,nulls,values,scalars">
-                  <h3>
-                    
-<code>arrays</code>, <code>objects</code>, <code>iterables</code>, <code>booleans</code>, <code>numbers</code>, <code>normals</code>, <code>finites</code>, <code>strings</code>, <code>nulls</code>, <code>values</code>, <code>scalars</code>
-
-                    
-                  </h3>
-                  
-<p>These built-ins select only inputs that are arrays, objects, iterables (arrays or objects), booleans, numbers, normal numbers, finite numbers, strings, null, non-null values, and non-iterables, respectively.</p>
+### `arrays`,`objects`, `iterables`, `booleans`, `numbers`, `normals`, `finites`, `strings`, `nulls`, `values`, `scalars`
 
 
-                  
-                    <div>
-                      
-                      <a data-toggle="collapse" href="#example21">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example21" class="manual-example collapse">
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[]|numbers'</td></tr>
-                            <tr><th>Input</th><td>[[],{},1,&quot;foo&quot;,null,true,false]</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>1</td>
-                              </tr>
-                            
-                          </table>
-                        
-                      </div>
-                    </div>
-                  
-                </section>
-              
-                <section id="empty">
-                  <h3>
-                    
-<code>empty</code>
+这些内置函数只有当输入分别是arrays, objects, iterables (arrays or objects), booleans, numbers, normal numbers, finite numbers, strings, null, non-null values（非null值）, and non-iterables(标量，不可迭代)时，起select同样的作用。
 
-                    
-                  </h3>
-                  
+[Examples](#example21)
+
+```jq
+       jq '.[]|numbers'
+----------------------------
+Input  [[],{},1,"foo",null,true,false]
+Output 1
+```
+
+### `empty`
+
 <p><code>empty</code> returns no results. None at all. Not even <code>null</code>.</p>
 
 <p>It’s useful on occasion. You’ll know if you need it :)</p>
