@@ -704,75 +704,32 @@ Output ["foo"]
 
 这三个函数互相转换obejct和键值对数组。如果给`to_entries`传入一个object，那么对于输入的每一个`k:v`单元，输出的数组会包含`{"key":k,"value":v}`。
 
-`from_entries`所做正是相反，
-<p><code>from_entries</code> does the opposite conversion, and <code>with_entries(foo)</code> is a shorthand for <code>to_entries |
-map(foo) | from_entries</code>, useful for doing some operation to all keys and values of an object. <code>from_entries</code> accepts key, Key, Name, value and Value as keys.</p>
+`from_entries`所做正是相反的转换，而`with_entries`是`to_entries | map(foo) | from_entries` 的一种简写形式，用来在object的所有key和value上做一些操作。`from_entries`只接受key,Key,Name,value,Value 作为输入数组单元的键.
 
+[Examples](#example19)
 
-                  
-                    <div>
-                      
-                      <a data-toggle="collapse" href="#example19">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example19" class="manual-example collapse">
-                        
+```jq
 
-<table>
-                            <tr><th></th><td class="jqprogram">jq 'to_entries'</td></tr>
-                            <tr><th>Input</th><td>{&quot;a&quot;: 1, &quot;b&quot;: 2}</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>[{&quot;key&quot;:&quot;a&quot;, &quot;value&quot;:1}, {&quot;key&quot;:&quot;b&quot;, &quot;value&quot;:2}]</td>
-                              </tr>
-                            
-                          </table>
+       jq 'to_entries'
+---------------------------
+Input  {"a": 1, "b": 2}
+Output [{"key":"a", "value":1}, {"key":"b", "value":2}]
+```
+```jq
+       jq 'from_entries'
+---------------------------
+Input  [{"key":"a", "value":1}, {"key":"b", "value":2}]
+Output {"a": 1, "b": 2}
+```
+```jq
+       jq 'with_entries(.key |= "KEY_" + .)'
+------------------------------------------------
+Input  {"a": 1, "b": 2}
+Output {"KEY_a": 1, "KEY_b": 2}
+```
                         
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'from_entries'</td></tr>
-                            <tr><th>Input</th><td>[{&quot;key&quot;:&quot;a&quot;, &quot;value&quot;:1}, {&quot;key&quot;:&quot;b&quot;, &quot;value&quot;:2}]</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>{&quot;a&quot;: 1, &quot;b&quot;: 2}</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'with_entries(.key |= &quot;KEY_&quot; + .)'</td></tr>
-                            <tr><th>Input</th><td>{&quot;a&quot;: 1, &quot;b&quot;: 2}</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>{&quot;KEY_a&quot;: 1, &quot;KEY_b&quot;: 2}</td>
-                              </tr>
-                            
-                          </table>
-                        
-                      </div>
-                    </div>
-                  
-                </section>
-              
-                <section id="select(boolean_expression)">
-                  <h3>
-                    
-<code>select(boolean_expression)</code>
+### `select(boolean_expression)`
 
-                    
-                  </h3>
                   
 <p>The function <code>select(foo)</code> produces its input unchanged if <code>foo</code> returns true for that input, and produces no output otherwise.</p>
 
