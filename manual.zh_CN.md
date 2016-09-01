@@ -764,67 +764,27 @@ Output 1
 
 ### `empty`
 
-<p><code>empty</code> returns no results. None at all. Not even <code>null</code>.</p>
+`empty` 不返回结果，一点也不，连`null`也不会返回。
 
-<p>It’s useful on occasion. You’ll know if you need it :)</p>
+有时候会有用。用到的时候自然就晓得了 :) 。
 
+[Examples](#example22)
 
-                  
-                    <div>
-                      
-                      <a data-toggle="collapse" href="#example22">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example22" class="manual-example collapse">
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '1, empty, 2'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>1</td>
-                              </tr>
-                            
-                              <tr>
-                                
-                                  <th></th>
-                                
-                                <td>2</td>
-                              </tr>
-                            
-                          </table>
-                        
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[1,2,empty,3]'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-                            
-                            
-                              <tr>
-                                
-                                  <th>Output</th>
-                                
-                                <td>[1,2,3]</td>
-                              </tr>
-                            
-                          </table>
-                        
-                      </div>
-                    </div>
-                  
-                </section>
-              
-                <section id="error(message)">
-                  <h3>
-                    
-<code>error(message)</code>
+```jq
+       jq '1, empty, 2'
+----------------------------
+Input  null
+Output 1
+       2
+```
+```jq
+       jq '[1,2,empty,3]'
+----------------------------
+Input  null
+Output [1,2,3]
+```
 
-                    
-                  </h3>
+### `error(message)`
                   
 <p>Produces an error, just like <code>.a</code> applied to values other than null and objects would, but with the given message as the error’s value.</p>
 
