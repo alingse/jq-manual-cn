@@ -702,9 +702,9 @@ Output ["foo"]
 
 ### `to_entries`,`from_entries `,`with_entries `
 
-                  
-<p>These functions convert between an object and an array of key-value pairs. If <code>to_entries</code> is passed an object, then for each <code>k: v</code> entry in the input, the output array includes <code>{&quot;key&quot;: k, &quot;value&quot;: v}</code>.</p>
+这三个函数互相转换obejct和键值对数组。如果给`to_entries`传入一个object，那么对于输入的每一个`k:v`单元，输出的数组会包含`{"key":k,"value":v}`。
 
+`from_entries`所做正是相反，
 <p><code>from_entries</code> does the opposite conversion, and <code>with_entries(foo)</code> is a shorthand for <code>to_entries |
 map(foo) | from_entries</code>, useful for doing some operation to all keys and values of an object. <code>from_entries</code> accepts key, Key, Name, value and Value as keys.</p>
 
@@ -718,7 +718,8 @@ map(foo) | from_entries</code>, useful for doing some operation to all keys and 
                       </a>
                       <div id="example19" class="manual-example collapse">
                         
-                          <table>
+
+<table>
                             <tr><th></th><td class="jqprogram">jq 'to_entries'</td></tr>
                             <tr><th>Input</th><td>{&quot;a&quot;: 1, &quot;b&quot;: 2}</td></tr>
                             
