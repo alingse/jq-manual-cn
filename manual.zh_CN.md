@@ -62,6 +62,7 @@ jq的过滤器运行在一个JSON数据流上.jq的输入被解析为一系列�
 
 - `--stream`:
 
+ 将输入以流的
  Parse the input in streaming fashion, outputing arrays of path and leaf values (scalars and empty arrays or empty objects). For example, 
 
  `"a"` becomes `[[],"a"]`, and  `[[],"a",["b"]]` becomes `[[0],[]]`,`[[1],"a"]`
