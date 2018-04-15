@@ -1,11 +1,11 @@
 # jq 中文手册
 
 
-文档版本、jq版本、项目版本均一致。
+文档版本与jq版本保持一致，同时也是项目分支名
 
-[development version](../master/manual.zh_CN.md)
+[jq v1.5 中文文档](../v1.5/manual.zh_CN.md)
 
-[v1.5](../v1.5/manual.zh_CN.md)
+master 的文档等 1.5 翻译完之后再更新
 
 
 ## 简介
@@ -23,7 +23,7 @@ jq 是一个命令行 JSON文本处理器，性能高效，语法简洁有力，
 方便使用者处理一些JSON数据(尽管也可以使用python的[pyrapidjson](https://github.com/hhatto/pyrapidjson)，但是jq语法更优雅便捷，而且可以随时命令行下修改调试)
 
 
-## demo:
+## Demo:
 demo1. 
 
 ```jq
@@ -38,6 +38,10 @@ sh$echo '{"s":2,"t":3,"w":5}'|jq
 demo2.
 
 功能:提取一行JSON数据中p值大于0.2的id
+
+```jq
+
+```
 
 窗口:
 <div>
