@@ -39,32 +39,33 @@ jq 过滤器运行在JSON 数据流上。jq的输入被解析为一系列由空�
 
 - `--version`:
 
-  Output the jq version and exit with zero.
+  输出 jq 的版本并以 exit 0 退出;
 
 - `--seq`:
 
-  Use the <code>application/json-seq</code> MIME type scheme for separating JSON texts in jq’s input and output. This means that an ASCII RS (record separator) character is printed before each value on output and an ASCII LF (line feed) is printed after every output. Input JSON texts that fail to parse are ignored (but warned about), discarding all subsequent input until the next RS. This more also parses the output of jq without the <code>--seq</code> option.
+  使用 <code> application/json-seq </ code> MIME类型格式分隔jq输入和输出中的JSON文本。这意味着会在每个输出值前打印一个ASCII RS（记录分隔符）字符，并在每次输出后打印一个ASCII LF（换行符）。输入无法解析的JSON文本会被忽略（但会被警告），直到下一个RS丢弃所有后续输入。 
+  这样另外也可以解析 jq 不使用<code> -- seq</code>选项时的输出。This more also parses the output of jq without the <code>--seq</code> option.（译者注：存疑，不太懂这句。）
 
 - `--stream`:
 
- Parse the input in streaming fashion, outputing arrays of path and leaf values (scalars and empty arrays or empty objects). For example,
+    以流方式解析输入，输出路径和叶子上的值（标量和空数组或空字典）。比如：
 
  `"a"` becomes `[[],"a"]`, and  `[[],"a",["b"]]` becomes `[[0],[]]`,`[[1],"a"]`
   , and `[[1,0],"b"]`.
-
-	This is useful for processing very large inputs. Use this in conjunction with filtering and the `reduce` and `foreach` syntax to reduce large inputs incrementally.
+  
+  这对于处理非常大的输入非常有用。 将此选项与过滤以及 `reduce`和`foreach`语法结合使用，可逐渐减少大量输入。
 
 - `--slurp` / `-s`:
 
-	Instead of running the filter for each JSON object in the input, read the entire input stream into a large array and run the filter just once.
+  不需要为输入中的每个JSON对象运行过滤器，只需将整个输入流读入为一个大型数组，然后只运行一次过滤器。
 
 - `--raw-input` / `-R`:
 
- Don’t parse the input as JSON. Instead, each line of text is passed to the filter as a string. If combined with `--slurp`, then the entire input is passed to the filter as a single long string.
+  不要将输入解析为JSON。 相反，每行文本都以字符串形式传递给过滤器。如果与`--slurp`结合使用，则整个输入将作为单个长字符串传递给过滤器。
 
 - `--null-input` / `-n`:
 
-  Don’t read any input at all! Instead, the filter is run once using `null` as the input. This is useful when using jq as a simple calculator or to construct JSON data from scratch.
+  根本不读任何输入！而是，过滤器使用`null`作为输入运行一次。 将jq用作简单计算器或从头开始构建JSON数据时，这很有用。
 
 - `--compact-output` / `-c`:
 
