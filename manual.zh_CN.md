@@ -43,16 +43,15 @@ jq 过滤器运行在JSON 数据流上。jq的输入被解析为一系列由空�
 
 - `--seq`:
 
-  使用 <code> application/json-seq </ code> MIME类型格式分隔jq输入和输出中的JSON文本。这意味着会在每个输出值前打印一个ASCII RS（记录分隔符）字符，并在每次输出后打印一个ASCII LF（换行符）。输入无法解析的JSON文本会被忽略（但会被警告），直到下一个RS丢弃所有后续输入。 
+  使用 <code> application/json-seq </ code> MIME类型格式分隔jq输入和输出中的JSON文本。这意味着会在每个输出值前打印一个ASCII RS（记录分隔符）字符，并在每次输出后打印一个ASCII LF（换行符）。输入无法解析的JSON文本会被忽略（但会被警告），直到下一个RS丢弃所有后续输入。
   这样另外也可以解析 jq 不使用<code> -- seq</code>选项时的输出。This more also parses the output of jq without the <code>--seq</code> option.（译者注：存疑，不太懂这句。）
 
 - `--stream`:
 
-    以流方式解析输入，输出路径和叶子上的值（标量和空数组或空字典）。比如：
+  以流方式解析输入，输出路径和叶子上的值（标量和空数组或空字典）。比如：
 
- `"a"` becomes `[[],"a"]`, and  `[[],"a",["b"]]` becomes `[[0],[]]`,`[[1],"a"]`
-  , and `[[1,0],"b"]`.
-  
+  `"a"` becomes `[[],"a"]`, and  `[[],"a",["b"]]` becomes `[[0],[]]`,`[[1],"a"]`, and `[[1,0],"b"]`.
+
   这对于处理非常大的输入非常有用。 将此选项与过滤以及 `reduce`和`foreach`语法结合使用，可逐渐减少大量输入。
 
 - `--slurp` / `-s`:
