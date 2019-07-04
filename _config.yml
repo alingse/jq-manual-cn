@@ -1,1 +1,4 @@
 theme: jekyll-theme-leap-day
+title: jq 中文手册
+description: https://stedolan.github.io/jq/manual/ 的中文翻译
+show_downloads: false
