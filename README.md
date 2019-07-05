@@ -13,7 +13,6 @@ jq 是一个命令行 JSON 文本处理器，性能高效，语法简洁有力�
 本项目目的是翻译出 `jq` 的中文手册，推广 `jq` 在国内的使用 (毕竟某度搜 `jq` 都是jquery)，
 方便使用者处理一些JSON数据(尽管也可以使用python)，但是jq语法更优雅便捷，而且可以随时命令行下修改调试)
 
-
 ## 示例
 
 示例 A
@@ -25,11 +24,13 @@ $echo '{"s":2,"t":3,"w":5}'|jq
   "t": 3,
   "w": 5
 }
+$echo '{"s":2,"t":3,"w":5}'|jq '.t'
+3
 ```
-
+M
 示例 B
 
-功能:提取一行JSON数据中p值大于0.2的id
+功能:提取一行 JSON 数据中 p 值大于 0.2 的 id
 
 ```jq
 echo '{"code":200,"data":{"items":[{"id":100,"p":0.3},{"id":101,"p":0.5},{"id":102,"p":0.7}]}}' > raw.json
@@ -39,8 +40,7 @@ cat raw.json|jq -r -c 'select(.code==200)|.data.items|map(select(.p>0.2))|.[]|{i
 
 窗口:
 <div>
-<iframe src="http://showterm.io/66cd2262111dbe29437ac" width="640" height="480">
-</iframe>
+<embed src="http://showterm.io/66cd2262111dbe29437ac" width= 640 height= 480 />
 </div>
 
 如果窗口没有显示，点击 [http://showterm.io/66cd2262111dbe29437ac ](http://showterm.io/66cd2262111dbe29437ac) 访问
@@ -95,8 +95,8 @@ jq 过滤器运行在JSON 数据流上。jq的输入被解析为一系列由空�
 
 - `--seq`:
 
-  使用 <code> application/json-seq </ code> MIME类型格式分隔jq输入和输出中的JSON文本。这意味着会在每个输出值前打印一个ASCII RS（记录分隔符）字符，并在每次输出后打印一个ASCII LF（换行符）。输入无法解析的JSON文本会被忽略（但会被警告），直到下一个RS丢弃所有后续输入。
-  这样另外也可以解析 jq 不使用<code> -- seq</code>选项时的输出。This more also parses the output of jq without the <code>--seq</code> option.（译者注：存疑，不太懂这句。）
+  使用 <code> application/json-seq </code> MIME类型格式分隔 jq 输入和输出中的 JSON 文本。这意味着会在每个输出值前打印一个ASCII RS（记录分隔符）字符，并在每次输出后打印一个ASCII LF（换行符）。输入无法解析的JSON文本会被忽略（但会被警告），直到下一个RS丢弃所有后续输入。
+  这样另外也可以解析 jq 不使用<code> -- seq</code>选项时的输出。This more also parses the output of jq without the <code>--seq</code> option.（译者注：存疑，不懂这句。）
 
 - `--stream`:
 
@@ -116,39 +116,39 @@ jq 过滤器运行在JSON 数据流上。jq的输入被解析为一系列由空�
 
 - `--null-input` / `-n`:
 
-  根本不读任何输入！而是，过滤器使用`null`作为输入运行一次。 将jq用作简单计算器或从头开始构建JSON数据时，这很有用。
+  根本不读任何输入！而是，过滤器使用`null`作为输入运行一次。 将jq用作简单计算器或从头开始构建JSON数据时，这很有用
 
 - `--compact-output` / `-c`:
 
-   By default, jq pretty-prints JSON output. Using this option will result in more compact output by instead putting each JSON object on a single line.
+	默认情况下, jq 会 pretty-prints JSON 输出。使用这个选项可以把每一个 JSON 对象在单行内更紧凑的输出出来
 
 - `--tab`:
 
-   Use a tab for each indentation level instead of two spaces.
+   每个缩进将会使用 tab 而不是两个空格
 
 - `--indent n`:
 
-   Use the given number of spaces (no more than 8) for indentation.
+  指定缩进使用的空格数(不能超过 8)
 
 - `--color-output` / `-C` and `--monochrome-output` / `-M`:
 
-  By default, jq outputs colored JSON if writing to a terminal. You can force it to produce color even if writing to a pipe or a file using `-C`, and disable color with `-M`.
+  默认情况下，如果是写入到终端，jq 会输出 colored JSON 。也可以使用 `-C` 强制输出彩色的JSON 到管道或者文件。也可以使用 `-M` 禁掉输出 colored JSON。
 
 - `--ascii-output` / `-a`:
 
- jq usually outputs non-ASCII Unicode codepoints as UTF-8, even if the input specified them as escape sequences (like “\u03bc”). Using this option, you can force jq to produce pure ASCII output with every non-ASCII character replaced with the equivalent escape sequence.
+  jq 一般将 非-ASCII 的 Unicode 字符使用 UTF-8 输出，即使输入的时候可能是转义后的序列(如 "\u03bc")。使用这个选项，可以强制 jq 生成纯 ASCII 输出，其中每个 非-ASCII 字符将用等价的转义序列替换。
 
 - `--unbuffered`:
 
-  Flush the output after each JSON object is printed (useful if you’re piping a slow data source into jq and piping jq’s output elsewhere).
+  Flush the output after each JSON object is printed (useful if you’re piping a slow data source into jq and piping jq’s output elsewhere). (译者: 很难翻译)
 
 - `--sort-keys` / `-S`:
 
-  Output the fields of each object with the keys in sorted order.
+  将每个 JSON object 的各个字段按照 key 排序的顺序输出
 
 - `--raw-output` / `-r`:
 
- With this option, if the filter’s result is a string then it will be written directly to standard output rather than being formatted as a JSON string with quotes. This can be useful for making jq filters talk to non-JSON-based systems.
+  在开启这个选项的情况下，如果 `过滤器` 的结果是 string，就会直接写入标准输出而不是以 JSON string 的格式输出。这在 jq 过滤器和其他处理 非-JSON 系统交互时比较有用。
 
 - `--join-output` / `-j`:
 
