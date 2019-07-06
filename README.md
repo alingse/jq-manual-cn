@@ -160,7 +160,7 @@ jq 过滤器运行在JSON 数据流上。jq的输入被解析为一系列由空�
 
 - `-Ldirectory ` / `-L directory`:
 
- Prepend <code>directory</code> to the search list for modules. If this option is used then no builtin search list is used. See the section on modules below.
+  Prepend <code>directory</code> to the search list for modules. If this option is used then no builtin search list is used. See the section on modules below.
 
 - `-e` / `--exit-status`:
 
@@ -178,20 +178,20 @@ jq 过滤器运行在JSON 数据流上。jq的输入被解析为一系列由空�
 
 - `--slurpfile variable-name filename`:
 
- This option reads all the JSON texts in the named file and binds an array of the parsed JSON values to the given global variable. If you run jq with `--argfile foo bar`, then `$foo` is available in the program and has an array whose elements correspond to the texts in the file named `bar`.
+  这个选项会读取名为 `filename` 文件里面所有的 JSON 文本并将解析后的所有 JSON 组成一个 array 作为名为 `variable-name` 的全局变量的值。如果以 `--argfile foo bar` 运行 jq, 那么在程序中变量 `$foo` 就是一个 array，array 中的每个元素都对应着文件 `bar` 中的 JSON 文本。
 
 - `--argfile variable-name filename`:
 
- Do not use. Use `--slurpfile` instead.
+  Do not use. Use `--slurpfile` instead.
 
-  (This option is like `--slurpfile`, but when the file has just one text, then that is used, else an array of texts is used as in `--slurpfile`.)
+  (这个选项和 `--slurpfile` 类似，不过当文件只有一个 JSON 文本时用这个，其他多个 JSON 文本用起来和 `--slurpfile`)
 
 - `--run-tests [filename]`:
 
- Runs the tests in the given file or standard input. This must be the last option given and does not honor all preceding options. The input consists of comment lines, empty lines, and program lines followed by one input line, as many lines of output as are expected (one per output), and a terminating empty line. Compilation failure tests start with a line containing only “%%FAIL”, then a line containing the program to compile, then a line containing an error message to compare to the actual.
+  Runs the tests in the given file or standard input. This must be the last option given and does not honor all preceding options. The input consists of comment lines, empty lines, and program lines followed by one input line, as many lines of output as are expected (one per output), and a terminating empty line. Compilation failure tests start with a line containing only “%%FAIL”, then a line containing the program to compile, then a line containing an error message to compare to the actual.
 
- Be warned that this option can change backwards-incompatibly.
-
+  Be warned that this option can change backwards-incompatibly.
+  (译者: 暂不翻译)
 
 
 ##  [基本过滤器](#Basicfilters)
