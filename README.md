@@ -152,11 +152,11 @@ jq 过滤器运行在JSON 数据流上。jq的输入被解析为一系列由空�
 
 - `--join-output` / `-j`:
 
- Like `-r` but jq won’t print a newline after each output.
+  和 `-r` 作用一样，但是不会在每个输出的末尾打印一个换行。
 
 - `-f filename` / `--from-file filename`:
 
- Read filter from the file rather than from a command line, like awk’s -f option. You can also use ‘#’ to make comments.
+  从文件中读取 `filter` 而不是从命令行中，类似 awk 的 -f 选项。文件中同样可以使用 # 来写注释
 
 - `-Ldirectory ` / `-L directory`:
 
@@ -164,15 +164,17 @@ jq 过滤器运行在JSON 数据流上。jq的输入被解析为一系列由空�
 
 - `-e` / `--exit-status`:
 
- Sets the exit status of jq to 0 if the last output values was neither `false` nor `null`, 1 if the last output value was either `false` or `null`, or 4 if no valid result was ever produced. Normally jq exits with 2 if there was any usage problem or system error, 3 if there was a jq program compile error, or 0 if the jq program ran.
+  设置 jq 的退出状态, 如果最后的输出值既不是 `false` 也不是 `null`则 exit 0，如果最后的输出值是 `false` 或 `null`则 exit 1，如果没有输出有效的结果则 exit 4，
+  正常情况下如果有 Usage 问题或者系统错误则 exit 2，如果是 jq 程序编译出错则 exit 3，jq 程序正常跑起来则 exit 0
 
 - `--arg name value`:
 
-    This option passes a value to the jq program as a predefined variable. If you run jq with `--arg foo bar`, then `$foo` is available in the program and has the value `"bar"`. Note that `value` will be treated as a string, so `--arg foo 123` will bind `$foo` to `"123"`.
+  这个选项向 jq 程序传递一个值作为一个预定义的变量。如果以 `--arg foo bar` 运行 jq 程序，那么在程序中 `$foo`就是一个值为 `"bar"`的变量。需要注意的是 `value` 只会被当做 string 处理，如 `--arg foo 123` 会提供 `$foo` 变量，值为`"123"`。
 
 - `--argjson name JSON-text`:
 
- This option passes a JSON-encoded value to the jq program as a predefined variable. If you run jq with `--argjson foo 123`, then `$foo` is available in the program and has the value `123`.
+  这个选项向 jq 程序传递一个 JSON 编码的值作为一个预定义的变量。
+  如果以 `--argjson foo 123` 运行 jq，那么程序中 `$foo` 就是一个值为 `123` 的变量。
 
 - `--slurpfile variable-name filename`:
 
