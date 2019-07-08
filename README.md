@@ -211,13 +211,13 @@ jq 过滤器运行在JSON 数据流上。jq的输入被解析为一系列由空�
 
 
 
-### <font color=#c7254e>`.foo`,`.foo.bar`</font>
+### `.foo`,`.foo.bar`
 
-  最简单的*有用*过滤器是`.foo`. 给定一个JSON对象(即字典或hash)做输入，它会给出"foo"键的值，如果没有这个key则给出null.
+  最简单的*有用*过滤器是 `.foo`。给定一个JSON Object (即字典或hash)做输入，它会给出"foo"键的值，如果没有这个key则给出null.
 
  如果键里含有关键字符，就要用双引号括起来，比如:."foo$".
 
-一个形如`.foo.bar`的过滤器是`.foo|.bar`的对等写法。
+一个形如`.foo.bar`的过滤器是`.foo|.bar`的等效写法。
 
 [Examples](#example2)
 
@@ -241,9 +241,9 @@ Output  42
 ```
 
 
-### <font color=#c7254e>`.foo?`</font>
+### `.foo?`
 
- 就跟`.foo`差不多,但是当`.`不是一个数组或一个对象报错时，不会输出。
+ 就跟`.foo`差不多,但是当`.`不是一个数组或一个对象而报错时，不会输出。
 
 [Examples](#example3)
 
@@ -272,138 +272,72 @@ Input   [1,2]
 Output  []
 ```
 
-### <font color=#c7254e>`.[<string>]`,`.[2]`,`.[10:15]`</font>
+### `.[<string>]`,`.[2]`,`.[10:15]`
 
- You can also look up fields of an object using syntax like <code>.[&quot;foo&quot;]</code> (.foo above is a shorthand version of this). This one works for arrays as well, if the key is an integer. Arrays are zero-based (like javascript), so <code>.[2]</code> returns the third element of the array.</p>
+  也可以使用类似 `.["foo"]` 的语法来查找 JSON Object 的一些元素 (上面的 `.foo` 是这个的一个速记版本)。如果 key 是数字的话，这种用法在 array 的情况下也可以有效。array 是以 0 为基的(类似 javascript)，因此 `.[2]` 返回 array 的第三个元素。
 
-<p>The <code>.[10:15]</code> syntax can be used to return a subarray of an array or substring of a string. The array returned by <code>.[10:15]</code> will be of length 5, containing the elements from index 10 (inclusive) to index 15 (exclusive). Either index may be negative (in which case it counts backwards from the end of the array), or omitted (in which case it refers to the start or end of the array).</p>
+  `.[10:15]` 这种语法可以用来返回一个数组的子数组，或者一个字符串的子字符串。`.[10:15]` 返回的数组长为 5，包含了索引从 10(包含)到 15(不包含)的元素。索引可以是负数的(这种情况下会从 array 的尾部开始倒着计数) 或者可以忽略(这种情况下指向数组的头部或者尾部)。
 
-<p>The <code>.[2]</code> syntax can be used to return the element at the given index. Negative indices are allowed, with -1 referring to the last element, -2 referring to the next to last element, and so on.</p>
+  `.[2]` 这种语法用来返回数组的指定索引的元素。负索引也是可以的，-1 表示最后一个元素，-2 表示倒数第二个元素，以此类推。
 
-<p>The <code>.foo</code> syntax only works for simply keys i.e. keys that are all alphanumeric characters. <code>.[&lt;string&gt;]</code> works with keys that contain special characters such as colons and dots. For example <code>.[&quot;foo::bar&quot;]</code> and <code>.[&quot;foo.bar&quot;]</code> work while <code>.foo::bar</code> and <code>.foo.bar</code> would not.</p>
-
-<p>The <code>?</code> “operator” can also be used with the slice operator, as in <code>.[10:15]?</code>, which outputs values where the inputs are slice-able.</p>
-
+  `.foo` 这种语法仅对简单的 key 有效，即 key 仅包含字母或数字字符(alphanumeric)。
+  `.[<string>]` 这种语法可以对包含特殊字符的 key 有效，诸如冒号或者点号。比如 `.["foo::bar"]` 和 `.["for.bar"]` 可以起效，而`.foo::bar` 和 `.foo.bar` 就不行。
 
 
-                    <div>
-
-                      <a data-toggle="collapse" href="#example4">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example4" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[0]'</td></tr>
-                            <tr><th>Input</th><td>[{&quot;name&quot;:&quot;JSON&quot;, &quot;good&quot;:true}, {&quot;name&quot;:&quot;XML&quot;, &quot;good&quot;:false}]</td></tr>
+  `?` 操作符("operator") 也可以在这种切片操作(slice operator)下使用。例如 `.[10:15]?` 可以在输入是可进行切片操作(slice-able)的时候输出一些值。
 
 
-                              <tr>
+[Examples](#example4)
 
-                                  <th>Output</th>
+```jq
+        jq '.[0]'
+--------------------
+Input   [{"name":"JSON", "good":true}, {"name":"XML", "good":false}]
+Output  {"name":"JSON", "good":true}
+```
 
-                                <td>{&quot;name&quot;:&quot;JSON&quot;, &quot;good&quot;:true}</td>
-                              </tr>
+```jq
+        jq '.[2]'
+--------------------
+Input   [{"name":"JSON", "good":true}, {"name":"XML", "good":false}]
+Output  null
+```
 
-                          </table>
+```jq
+        jq '.[2:4]'
+--------------------
+Input   ["a","b","c","d","e"]
+Output  ["c", "d"]
+```
 
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[2]'</td></tr>
-                            <tr><th>Input</th><td>[{&quot;name&quot;:&quot;JSON&quot;, &quot;good&quot;:true}, {&quot;name&quot;:&quot;XML&quot;, &quot;good&quot;:false}]</td></tr>
+```jq
+        jq '.[2:4]'
+--------------------
+Input   "abcdefghi"
+Output  "cd"
+```
 
+```jq
+        jq '.[:3]'
+--------------------
+Input   ["a","b","c","d","e"]
+Output  ["a", "b", "c"]
+```
 
-                              <tr>
+```jq
+        jq '.[-2:]'
+--------------------
+Input   ["a","b","c","d","e"]
+Output  ["d", "e"]
+```
 
-                                  <th>Output</th>
+```jq
+        jq '.[-2]'
+--------------------
+Input   [1,2,3]
+Output  2
+```
 
-                                <td>null</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[2:4]'</td></tr>
-                            <tr><th>Input</th><td>[&quot;a&quot;,&quot;b&quot;,&quot;c&quot;,&quot;d&quot;,&quot;e&quot;]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[&quot;c&quot;, &quot;d&quot;]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[2:4]'</td></tr>
-                            <tr><th>Input</th><td>&quot;abcdefghi&quot;</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>&quot;cd&quot;</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[:3]'</td></tr>
-                            <tr><th>Input</th><td>[&quot;a&quot;,&quot;b&quot;,&quot;c&quot;,&quot;d&quot;,&quot;e&quot;]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[-2:]'</td></tr>
-                            <tr><th>Input</th><td>[&quot;a&quot;,&quot;b&quot;,&quot;c&quot;,&quot;d&quot;,&quot;e&quot;]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[&quot;d&quot;, &quot;e&quot;]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[-2]'</td></tr>
-                            <tr><th>Input</th><td>[1,2,3]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>2</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id=".[]">
-                  <h3>
-
-<code>.[]</code>
-
-
-                  </h3>
 
 <p>If you use the <code>.[index]</code> syntax, but omit the index entirely, it will return <em>all</em> of the elements of an array. Running <code>.[]</code> with the input <code>[1,2,3]</code> will produce the numbers as three separate results, rather than as a single array.</p>
 
