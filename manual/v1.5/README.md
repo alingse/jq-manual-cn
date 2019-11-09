@@ -287,5766 +287,2506 @@ Input   [1,2,3]
 Output  2
 ```
 
+## TODO
+---------------
+
+      - title: "`.[]`"
+        body: |
+
+          If you use the `.[index]` syntax, but omit the index
+          entirely, it will return *all* of the elements of an
+          array. Running `.[]` with the input `[1,2,3]` will produce the
+          numbers as three separate results, rather than as a single
+          array.
+
+          You can also use this on an object, and it will return all
+          the values of the object.
+
+        examples:
+          - program: '.[]'
+            input: '[{"name":"JSON", "good":true}, {"name":"XML", "good":false}]'
+            output:
+              - '{"name":"JSON", "good":true}'
+              - '{"name":"XML", "good":false}'
+
+          - program: '.[]'
+            input: '[]'
+            output: []
+
+          - program: '.[]'
+            input: '{"a": 1, "b": 1}'
+            output: ['1', '1']
+
+      - title: "`.[]?`"
+        body: |
+
+          Like `.[]`, but no errors will be output if . is not an array
+          or object.
+
+      - title: "`,`"
+        body: |
+
+          If two filters are separated by a comma, then the
+          input will be fed into both and there will be multiple
+          outputs: first, all of the outputs produced by the left
+          expression, and then all of the outputs produced by the
+          right. For instance, filter `.foo, .bar`, produces
+          both the "foo" fields and "bar" fields as separate outputs.
+
+        examples:
+          - program: '.foo, .bar'
+            input: '{"foo": 42, "bar": "something else", "baz": true}'
+            output: ['42', '"something else"']
+
+          - program: ".user, .projects[]"
+            input: '{"user":"stedolan", "projects": ["jq", "wikiflow"]}'
+            output: ['"stedolan"', '"jq"', '"wikiflow"']
+
+          - program: '.[4,2]'
+            input: '["a","b","c","d","e"]'
+            output: ['"e"', '"c"']
+
+      - title: "`|`"
+        body: |
+          The | operator combines two filters by feeding the output(s) of
+          the one on the left into the input of the one on the right. It's
+          pretty much the same as the Unix shell's pipe, if you're used to
+          that.
+
+          If the one on the left produces multiple results, the one on
+          the right will be run for each of those results. So, the
+          expression `.[] | .foo` retrieves the "foo" field of each
+          element of the input array.
+
+        examples:
+          - program: '.[] | .name'
+            input: '[{"name":"JSON", "good":true}, {"name":"XML", "good":false}]'
+            output: ['"JSON"', '"XML"']
+
+  - title: Types and Values
+    body: |
+
+      jq supports the same set of datatypes as JSON - numbers,
+      strings, booleans, arrays, objects (which in JSON-speak are
+      hashes with only string keys), and "null".
+
+      Booleans, null, strings and numbers are written the same way as
+      in javascript. Just like everything else in jq, these simple
+      values take an input and produce an output - `42` is a valid jq
+      expression that takes an input, ignores it, and returns 42
+      instead.
+
+    entries:
+      - title: Array construction - `[]`
+        body: |
+
+          As in JSON, `[]` is used to construct arrays, as in
+          `[1,2,3]`. The elements of the arrays can be any jq
+          expression. All of the results produced by all of the
+          expressions are collected into one big array. You can use it
+          to construct an array out of a known quantity of values (as
+          in `[.foo, .bar, .baz]`) or to "collect" all the results of a
+          filter into an array (as in `[.items[].name]`)
+
+          Once you understand the "," operator, you can look at jq's array
+          syntax in a different light: the expression `[1,2,3]` is not using a
+          built-in syntax for comma-separated arrays, but is instead applying
+          the `[]` operator (collect results) to the expression 1,2,3 (which
+          produces three different results).
 
-<p>If you use the <code>.[index]</code> syntax, but omit the index entirely, it will return <em>all</em> of the elements of an array. Running <code>.[]</code> with the input <code>[1,2,3]</code> will produce the numbers as three separate results, rather than as a single array.</p>
+          If you have a filter `X` that produces four results,
+          then the expression `[X]` will produce a single result, an
+          array of four elements.
 
-<p>You can also use this on an object, and it will return all the values of the object.</p>
+        examples:
+          - program: "[.user, .projects[]]"
+            input: '{"user":"stedolan", "projects": ["jq", "wikiflow"]}'
+            output: ['["stedolan", "jq", "wikiflow"]']
+      - title: Objects - `{}`
+        body: |
 
+          Like JSON, `{}` is for constructing objects (aka
+          dictionaries or hashes), as in: `{"a": 42, "b": 17}`.
 
+          If the keys are "sensible" (all alphabetic characters), then
+          the quotes can be left off. The value can be any expression
+          (although you may need to wrap it in parentheses if it's a
+          complicated one), which gets applied to the {} expression's
+          input (remember, all filters have an input and an
+          output).
 
-                    <div>
+              {foo: .bar}
 
-                      <a data-toggle="collapse" href="#example5">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example5" class="manual-example collapse">
+          will produce the JSON object `{"foo": 42}` if given the JSON
+          object `{"bar":42, "baz":43}`. You can use this to select
+          particular fields of an object: if the input is an object
+          with "user", "title", "id", and "content" fields and you
+          just want "user" and "title", you can write
+
+              {user: .user, title: .title}
+
+          Because that's so common, there's a shortcut syntax: `{user, title}`.
+
+          If one of the expressions produces multiple results,
+          multiple dictionaries will be produced. If the input's
+
+              {"user":"stedolan","titles":["JQ Primer", "More JQ"]}
 
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[]'</td></tr>
-                            <tr><th>Input</th><td>[{&quot;name&quot;:&quot;JSON&quot;, &quot;good&quot;:true}, {&quot;name&quot;:&quot;XML&quot;, &quot;good&quot;:false}]</td></tr>
+          then the expression
 
+              {user, title: .titles[]}
 
-                              <tr>
+          will produce two outputs:
 
-                                  <th>Output</th>
+              {"user":"stedolan", "title": "JQ Primer"}
+              {"user":"stedolan", "title": "More JQ"}
+
+          Putting parentheses around the key means it will be evaluated as an
+          expression. With the same input as above,
 
-                                <td>{&quot;name&quot;:&quot;JSON&quot;, &quot;good&quot;:true}</td>
-                              </tr>
+              {(.user): .titles}
+
+          produces
+
+              {"stedolan": ["JQ Primer", "More JQ"]}
+
+        examples:
+          - program: '{user, title: .titles[]}'
+            input: '{"user":"stedolan","titles":["JQ Primer", "More JQ"]}'
+            output:
+              - '{"user":"stedolan", "title": "JQ Primer"}'
+              - '{"user":"stedolan", "title": "More JQ"}'
+          - program: '{(.user): .titles}'
+            input: '{"user":"stedolan","titles":["JQ Primer", "More JQ"]}'
+            output: ['{"stedolan": ["JQ Primer", "More JQ"]}']
+
+  - title: Builtin operators and functions
+    body: |
+
+      Some jq operator (for instance, `+`) do different things
+      depending on the type of their arguments (arrays, numbers,
+      etc.). However, jq never does implicit type conversions. If you
+      try to add a string to an object you'll get an error message and
+      no result.
+
+    entries:
+      - title: Addition - `+`
+        body: |
 
-                              <tr>
+          The operator `+` takes two filters, applies them both
+          to the same input, and adds the results together. What
+          "adding" means depends on the types involved:
+
+          - **Numbers** are added by normal arithmetic.
 
-                                  <th></th>
+          - **Arrays** are added by being concatenated into a larger array.
 
-                                <td>{&quot;name&quot;:&quot;XML&quot;, &quot;good&quot;:false}</td>
-                              </tr>
+          - **Strings** are added by being joined into a larger string.
 
-                          </table>
+          - **Objects** are added by merging, that is, inserting all
+              the key-value pairs from both objects into a single
+              combined object. If both objects contain a value for the
+              same key, the object on the right of the `+` wins. (For
+              recursive merge use the `*` operator.)
+
+          `null` can be added to any value, and returns the other
+          value unchanged.
 
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[]'</td></tr>
-                            <tr><th>Input</th><td>[]</td></tr>
+        examples:
+          - program: '.a + 1'
+            input: '{"a": 7}'
+            output: ['8']
+          - program: '.a + .b'
+            input: '{"a": [1,2], "b": [3,4]}'
+            output: ['[1,2,3,4]']
+          - program: '.a + null'
+            input: '{"a": 1}'
+            output: ['1']
+          - program: '.a + 1'
+            input: '{}'
+            output: ['1']
+          - program: '{a: 1} + {b: 2} + {c: 3} + {a: 42}'
+            input: 'null'
+            output: ['{"a": 42, "b": 2, "c": 3}']
+
+      - title: Subtraction - `-`
+        body: |
 
-                              <tr>
-                                <th>Output</th>
-                                <td><i>none</i></td>
-                              </tr>
+          As well as normal arithmetic subtraction on numbers, the `-`
+          operator can be used on arrays to remove all occurrences of
+          the second array's elements from the first array.
 
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[]'</td></tr>
-                            <tr><th>Input</th><td>{&quot;a&quot;: 1, &quot;b&quot;: 1}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>1</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>1</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id=".[]?">
-                  <h3>
-
-<code>.[]?</code>
-
-
-                  </h3>
-
-<p>Like <code>.[]</code>, but no errors will be output if . is not an array or object.</p>
-
-
-
-                </section>
-
-                <section id=",">
-                  <h3>
-
-<code>,</code>
-
-
-                  </h3>
-
-<p>If two filters are separated by a comma, then the input will be fed into both and there will be multiple outputs: first, all of the outputs produced by the left expression, and then all of the outputs produced by the right. For instance, filter <code>.foo, .bar</code>, produces both the “foo” fields and “bar” fields as separate outputs.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example6">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example6" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.foo, .bar'</td></tr>
-                            <tr><th>Input</th><td>{&quot;foo&quot;: 42, &quot;bar&quot;: &quot;something else&quot;, &quot;baz&quot;: true}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>42</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>&quot;something else&quot;</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.user, .projects[]'</td></tr>
-                            <tr><th>Input</th><td>{&quot;user&quot;:&quot;stedolan&quot;, &quot;projects&quot;: [&quot;jq&quot;, &quot;wikiflow&quot;]}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>&quot;stedolan&quot;</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>&quot;jq&quot;</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>&quot;wikiflow&quot;</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[4,2]'</td></tr>
-                            <tr><th>Input</th><td>[&quot;a&quot;,&quot;b&quot;,&quot;c&quot;,&quot;d&quot;,&quot;e&quot;]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>&quot;e&quot;</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>&quot;c&quot;</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="|">
-                  <h3>
-
-<code>|</code>
-
-
-                  </h3>
-
-<p>The | operator combines two filters by feeding the output(s) of the one on the left into the input of the one on the right. It’s pretty much the same as the Unix shell’s pipe, if you’re used to that.</p>
-
-<p>If the one on the left produces multiple results, the one on the right will be run for each of those results. So, the expression <code>.[] | .foo</code> retrieves the “foo” field of each element of the input array.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example7">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example7" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[] | .name'</td></tr>
-                            <tr><th>Input</th><td>[{&quot;name&quot;:&quot;JSON&quot;, &quot;good&quot;:true}, {&quot;name&quot;:&quot;XML&quot;, &quot;good&quot;:false}]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>&quot;JSON&quot;</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>&quot;XML&quot;</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-            </section>
-
-            <section id="TypesandValues">
-              <h2>Types and Values</h2>
-
-<p>jq supports the same set of datatypes as JSON - numbers, strings, booleans, arrays, objects (which in JSON-speak are hashes with only string keys), and “null”.</p>
-
-<p>Booleans, null, strings and numbers are written the same way as in javascript. Just like everything else in jq, these simple values take an input and produce an output - <code>42</code> is a valid jq expression that takes an input, ignores it, and returns 42 instead.</p>
-
-
-                <section id="Arrayconstruction-[]">
-                  <h3>
-
-Array construction - <code>[]</code>
-
-
-                  </h3>
-
-<p>As in JSON, <code>[]</code> is used to construct arrays, as in <code>[1,2,3]</code>. The elements of the arrays can be any jq expression. All of the results produced by all of the expressions are collected into one big array. You can use it to construct an array out of a known quantity of values (as in <code>[.foo, .bar, .baz]</code>) or to “collect” all the results of a filter into an array (as in <code>[.items[].name]</code>)</p>
-
-<p>Once you understand the “,” operator, you can look at jq’s array syntax in a different light: the expression <code>[1,2,3]</code> is not using a built-in syntax for comma-separated arrays, but is instead applying the <code>[]</code> operator (collect results) to the expression 1,2,3 (which produces three different results).</p>
-
-<p>If you have a filter <code>X</code> that produces four results, then the expression <code>[X]</code> will produce a single result, an array of four elements.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example8">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example8" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[.user, .projects[]]'</td></tr>
-                            <tr><th>Input</th><td>{&quot;user&quot;:&quot;stedolan&quot;, &quot;projects&quot;: [&quot;jq&quot;, &quot;wikiflow&quot;]}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[&quot;stedolan&quot;, &quot;jq&quot;, &quot;wikiflow&quot;]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="Objects-{}">
-                  <h3>
-
-Objects - <code>{}</code>
-
-
-                  </h3>
-
-<p>Like JSON, <code>{}</code> is for constructing objects (aka dictionaries or hashes), as in: <code>{&quot;a&quot;: 42, &quot;b&quot;: 17}</code>.</p>
-
-<p>If the keys are “sensible” (all alphabetic characters), then the quotes can be left off. The value can be any expression (although you may need to wrap it in parentheses if it’s a complicated one), which gets applied to the {} expression’s input (remember, all filters have an input and an output).</p>
-
-<pre><code>{foo: .bar}</code></pre>
-
-<p>will produce the JSON object <code>{&quot;foo&quot;: 42}</code> if given the JSON object <code>{&quot;bar&quot;:42, &quot;baz&quot;:43}</code>. You can use this to select particular fields of an object: if the input is an object with “user”, “title”, “id”, and “content” fields and you just want “user” and “title”, you can write</p>
-
-<pre><code>{user: .user, title: .title}</code></pre>
-
-<p>Because that’s so common, there’s a shortcut syntax: <code>{user, title}</code>.</p>
-
-<p>If one of the expressions produces multiple results, multiple dictionaries will be produced. If the input’s</p>
-
-<pre><code>{&quot;user&quot;:&quot;stedolan&quot;,&quot;titles&quot;:[&quot;JQ Primer&quot;, &quot;More JQ&quot;]}</code></pre>
-
-<p>then the expression</p>
-
-<pre><code>{user, title: .titles[]}</code></pre>
-
-<p>will produce two outputs:</p>
-
-<pre><code>{&quot;user&quot;:&quot;stedolan&quot;, &quot;title&quot;: &quot;JQ Primer&quot;}
-{&quot;user&quot;:&quot;stedolan&quot;, &quot;title&quot;: &quot;More JQ&quot;}</code></pre>
-
-<p>Putting parentheses around the key means it will be evaluated as an expression. With the same input as above,</p>
-
-<pre><code>{(.user): .titles}</code></pre>
-
-<p>produces</p>
-
-<pre><code>{&quot;stedolan&quot;: [&quot;JQ Primer&quot;, &quot;More JQ&quot;]}</code></pre>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example9">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example9" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '{user, title: .titles[]}'</td></tr>
-                            <tr><th>Input</th><td>{&quot;user&quot;:&quot;stedolan&quot;,&quot;titles&quot;:[&quot;JQ Primer&quot;, &quot;More JQ&quot;]}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>{&quot;user&quot;:&quot;stedolan&quot;, &quot;title&quot;: &quot;JQ Primer&quot;}</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>{&quot;user&quot;:&quot;stedolan&quot;, &quot;title&quot;: &quot;More JQ&quot;}</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '{(.user): .titles}'</td></tr>
-                            <tr><th>Input</th><td>{&quot;user&quot;:&quot;stedolan&quot;,&quot;titles&quot;:[&quot;JQ Primer&quot;, &quot;More JQ&quot;]}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>{&quot;stedolan&quot;: [&quot;JQ Primer&quot;, &quot;More JQ&quot;]}</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-            </section>
-
-            <section id="Builtinoperatorsandfunctions">
-              <h2>Builtin operators and functions</h2>
-
-<p>Some jq operator (for instance, <code>+</code>) do different things depending on the type of their arguments (arrays, numbers, etc.). However, jq never does implicit type conversions. If you try to add a string to an object you’ll get an error message and no result.</p>
-
-
-                <section id="Addition-+">
-                  <h3>
-
-Addition - <code>+</code>
-
-
-                  </h3>
-
-<p>The operator <code>+</code> takes two filters, applies them both to the same input, and adds the results together. What “adding” means depends on the types involved:</p>
-
-<ul>
-<li>
-<p><strong>Numbers</strong> are added by normal arithmetic.</p>
-</li>
-
-<li>
-<p><strong>Arrays</strong> are added by being concatenated into a larger array.</p>
-</li>
-
-<li>
-<p><strong>Strings</strong> are added by being joined into a larger string.</p>
-</li>
-
-<li>
-<p><strong>Objects</strong> are added by merging, that is, inserting all the key-value pairs from both objects into a single combined object. If both objects contain a value for the same key, the object on the right of the <code>+</code> wins. (For recursive merge use the <code>*</code> operator.)</p>
-</li>
-</ul>
-
-<p><code>null</code> can be added to any value, and returns the other value unchanged.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example10">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example10" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.a + 1'</td></tr>
-                            <tr><th>Input</th><td>{&quot;a&quot;: 7}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>8</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.a + .b'</td></tr>
-                            <tr><th>Input</th><td>{&quot;a&quot;: [1,2], &quot;b&quot;: [3,4]}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[1,2,3,4]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.a + null'</td></tr>
-                            <tr><th>Input</th><td>{&quot;a&quot;: 1}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>1</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.a + 1'</td></tr>
-                            <tr><th>Input</th><td>{}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>1</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '{a: 1} + {b: 2} + {c: 3} + {a: 42}'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>{&quot;a&quot;: 42, &quot;b&quot;: 2, &quot;c&quot;: 3}</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="Subtraction--">
-                  <h3>
-
-Subtraction - <code>-</code>
-
-
-                  </h3>
-
-<p>As well as normal arithmetic subtraction on numbers, the <code>-</code> operator can be used on arrays to remove all occurrences of the second array’s elements from the first array.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example11">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example11" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '4 - .a'</td></tr>
-                            <tr><th>Input</th><td>{&quot;a&quot;:3}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>1</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '. - [&quot;xml&quot;, &quot;yaml&quot;]'</td></tr>
-                            <tr><th>Input</th><td>[&quot;xml&quot;, &quot;yaml&quot;, &quot;json&quot;]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[&quot;json&quot;]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="Multiplication,division,modulo-*,/,and%">
-                  <h3>
-
-Multiplication, division, modulo - <code>*</code>, <code>/</code>, and <code>%</code>
-
-
-                  </h3>
-
-<p>These infix operators behave as expected when given two numbers. Division by zero raises an error. <code>x % y</code> computes x modulo y.</p>
-
-<p>Multiplying a string by a number produces the concatenation of that string that many times. <code>&quot;x&quot; * 0</code> produces <strong>null</strong>.</p>
-
-<p>Dividing a string by another splits the first using the second as separators.</p>
-
-<p>Multiplying two objects will merge them recursively: this works like addition but if both objects contain a value for the same key, and the values are objects, the two are merged with the same strategy.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example12">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example12" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '10 / . * 3'</td></tr>
-                            <tr><th>Input</th><td>5</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>6</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '. / &quot;, &quot;'</td></tr>
-                            <tr><th>Input</th><td>&quot;a, b,c,d, e&quot;</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[&quot;a&quot;,&quot;b,c,d&quot;,&quot;e&quot;]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '{&quot;k&quot;: {&quot;a&quot;: 1, &quot;b&quot;: 2}} * {&quot;k&quot;: {&quot;a&quot;: 0,&quot;c&quot;: 3}}'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>{&quot;k&quot;: {&quot;a&quot;: 0, &quot;b&quot;: 2, &quot;c&quot;: 3}}</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[] | (1 / .)?'</td></tr>
-                            <tr><th>Input</th><td>[1,0,-1]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>1</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>-1</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="length">
-                  <h3>
-
-<code>length</code>
-
-
-                  </h3>
-
-<p>The builtin function <code>length</code> gets the length of various different types of value:</p>
-
-<ul>
-<li>
-<p>The length of a <strong>string</strong> is the number of Unicode codepoints it contains (which will be the same as its JSON-encoded length in bytes if it’s pure ASCII).</p>
-</li>
-
-<li>
-<p>The length of an <strong>array</strong> is the number of elements.</p>
-</li>
-
-<li>
-<p>The length of an <strong>object</strong> is the number of key-value pairs.</p>
-</li>
-
-<li>
-<p>The length of <strong>null</strong> is zero.</p>
-</li>
-</ul>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example13">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example13" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[] | length'</td></tr>
-                            <tr><th>Input</th><td>[[1,2], &quot;string&quot;, {&quot;a&quot;:2}, null]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>2</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>6</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>1</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>0</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="keys,keys_unsorted">
-                  <h3>
-
-<code>keys</code>, <code>keys_unsorted</code>
-
-
-                  </h3>
-
-<p>The builtin function <code>keys</code>, when given an object, returns its keys in an array.</p>
-
-<p>The keys are sorted “alphabetically”, by unicode codepoint order. This is not an order that makes particular sense in any particular language, but you can count on it being the same for any two objects with the same set of keys, regardless of locale settings.</p>
-
-<p>When <code>keys</code> is given an array, it returns the valid indices for that array: the integers from 0 to length-1.</p>
-
-<p>The <code>keys_unsorted</code> function is just like <code>keys</code>, but if the input is an object then the keys will not be sorted, instead the keys will roughly be in insertion order.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example14">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example14" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'keys'</td></tr>
-                            <tr><th>Input</th><td>{&quot;abc&quot;: 1, &quot;abcd&quot;: 2, &quot;Foo&quot;: 3}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[&quot;Foo&quot;, &quot;abc&quot;, &quot;abcd&quot;]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'keys'</td></tr>
-                            <tr><th>Input</th><td>[42,3,35]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[0,1,2]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="has(key)">
-                  <h3>
-
-<code>has(key)</code>
-
-
-                  </h3>
-
-<p>The builtin function <code>has</code> returns whether the input object has the given key, or the input array has an element at the given index.</p>
-
-<p><code>has($key)</code> has the same effect as checking whether <code>$key</code> is a member of the array returned by <code>keys</code>, although <code>has</code> will be faster.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example15">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example15" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'map(has(&quot;foo&quot;))'</td></tr>
-                            <tr><th>Input</th><td>[{&quot;foo&quot;: 42}, {}]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[true, false]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'map(has(2))'</td></tr>
-                            <tr><th>Input</th><td>[[0,1], [&quot;a&quot;,&quot;b&quot;,&quot;c&quot;]]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[false, true]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="in">
-                  <h3>
-
-<code>in</code>
-
-
-                  </h3>
-
-<p>The builtin function <code>in</code> returns the input key is in the given object, or the input index corresponds to an element in the given array. It is, essentially, an inversed version of <code>has</code>.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example16">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example16" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[] | in({&quot;foo&quot;: 42})'</td></tr>
-                            <tr><th>Input</th><td>[&quot;foo&quot;, &quot;bar&quot;]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>true</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>false</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'map(in([0,1]))'</td></tr>
-                            <tr><th>Input</th><td>[2, 0]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[false, true]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="path(path_expression)">
-                  <h3>
-
-<code>path(path_expression)</code>
-
-
-                  </h3>
-
-<p>Outputs array representations of the given path expression in <code>.</code>. The outputs are arrays of strings (keys in objects0 and/or numbers (array indices.</p>
-
-<p>Path expressions are jq expressions like <code>.a</code>, but also <code>.[]</code>. There are two types of path expressions: ones that can match exactly, and ones that cannot. For example, <code>.a.b.c</code> is an exact match path expression, while <code>.a[].b</code> is not.</p>
-
-<p><code>path(exact_path_expression)</code> will produce the array representation of the path expression even if it does not exist in <code>.</code>, if <code>.</code> is <code>null</code> or an array or an object.</p>
-
-<p><code>path(pattern)</code> will produce array representations of the paths matching <code>pattern</code> if the paths exist in <code>.</code>.</p>
-
-<p>Note that the path expressions are not different from normal expressions. The expression <code>path(..|select(type==&quot;boolean&quot;))</code> outputs all the paths to boolean values in <code>.</code>, and only those paths.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example17">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example17" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'path(.a[0].b)'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[&quot;a&quot;,0,&quot;b&quot;]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[path(..)]'</td></tr>
-                            <tr><th>Input</th><td>{&quot;a&quot;:[{&quot;b&quot;:1}]}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[[],[&quot;a&quot;],[&quot;a&quot;,0],[&quot;a&quot;,0,&quot;b&quot;]]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="del(path_expression)">
-                  <h3>
-
-<code>del(path_expression)</code>
-
-
-                  </h3>
-
-<p>The builtin function <code>del</code> removes a key and its corresponding value from an object.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example18">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example18" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'del(.foo)'</td></tr>
-                            <tr><th>Input</th><td>{&quot;foo&quot;: 42, &quot;bar&quot;: 9001, &quot;baz&quot;: 42}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>{&quot;bar&quot;: 9001, &quot;baz&quot;: 42}</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'del(.[1, 2])'</td></tr>
-                            <tr><th>Input</th><td>[&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[&quot;foo&quot;]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="to_entries,from_entries,with_entries">
-                  <h3>
-
-<code>to_entries</code>, <code>from_entries</code>, <code>with_entries</code>
-
-
-                  </h3>
-
-<p>These functions convert between an object and an array of key-value pairs. If <code>to_entries</code> is passed an object, then for each <code>k: v</code> entry in the input, the output array includes <code>{&quot;key&quot;: k, &quot;value&quot;: v}</code>.</p>
-
-<p><code>from_entries</code> does the opposite conversion, and <code>with_entries(foo)</code> is a shorthand for <code>to_entries |
-map(foo) | from_entries</code>, useful for doing some operation to all keys and values of an object. <code>from_entries</code> accepts key, Key, Name, value and Value as keys.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example19">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example19" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'to_entries'</td></tr>
-                            <tr><th>Input</th><td>{&quot;a&quot;: 1, &quot;b&quot;: 2}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[{&quot;key&quot;:&quot;a&quot;, &quot;value&quot;:1}, {&quot;key&quot;:&quot;b&quot;, &quot;value&quot;:2}]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'from_entries'</td></tr>
-                            <tr><th>Input</th><td>[{&quot;key&quot;:&quot;a&quot;, &quot;value&quot;:1}, {&quot;key&quot;:&quot;b&quot;, &quot;value&quot;:2}]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>{&quot;a&quot;: 1, &quot;b&quot;: 2}</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'with_entries(.key |= &quot;KEY_&quot; + .)'</td></tr>
-                            <tr><th>Input</th><td>{&quot;a&quot;: 1, &quot;b&quot;: 2}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>{&quot;KEY_a&quot;: 1, &quot;KEY_b&quot;: 2}</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="select(boolean_expression)">
-                  <h3>
-
-<code>select(boolean_expression)</code>
-
-
-                  </h3>
-
-<p>The function <code>select(foo)</code> produces its input unchanged if <code>foo</code> returns true for that input, and produces no output otherwise.</p>
-
-<p>It’s useful for filtering lists: <code>[1,2,3] | map(select(. &gt;= 2))</code> will give you <code>[2,3]</code>.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example20">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example20" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'map(select(. &gt;= 2))'</td></tr>
-                            <tr><th>Input</th><td>[1,5,3,0,7]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[5,3,7]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[] | select(.id == &quot;second&quot;)'</td></tr>
-                            <tr><th>Input</th><td>[{&quot;id&quot;: &quot;first&quot;, &quot;val&quot;: 1}, {&quot;id&quot;: &quot;second&quot;, &quot;val&quot;: 2}]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>{&quot;id&quot;: &quot;second&quot;, &quot;val&quot;: 2}</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="arrays,objects,iterables,booleans,numbers,normals,finites,strings,nulls,values,scalars">
-                  <h3>
-
-<code>arrays</code>, <code>objects</code>, <code>iterables</code>, <code>booleans</code>, <code>numbers</code>, <code>normals</code>, <code>finites</code>, <code>strings</code>, <code>nulls</code>, <code>values</code>, <code>scalars</code>
-
-
-                  </h3>
-
-<p>These built-ins select only inputs that are arrays, objects, iterables (arrays or objects), booleans, numbers, normal numbers, finite numbers, strings, null, non-null values, and non-iterables, respectively.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example21">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example21" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[]|numbers'</td></tr>
-                            <tr><th>Input</th><td>[[],{},1,&quot;foo&quot;,null,true,false]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>1</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="empty">
-                  <h3>
-
-<code>empty</code>
-
-
-                  </h3>
-
-<p><code>empty</code> returns no results. None at all. Not even <code>null</code>.</p>
-
-<p>It’s useful on occasion. You’ll know if you need it :)</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example22">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example22" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '1, empty, 2'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>1</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>2</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[1,2,empty,3]'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[1,2,3]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="error(message)">
-                  <h3>
-
-<code>error(message)</code>
-
-
-                  </h3>
-
-<p>Produces an error, just like <code>.a</code> applied to values other than null and objects would, but with the given message as the error’s value.</p>
-
-
-
-                </section>
-
-                <section id="$__loc__">
-                  <h3>
-
-<code>$__loc__</code>
-
-
-                  </h3>
-
-<p>Produces an object with a “file” key and a “line” key, with the filename and line number where <code>$__loc__</code> occurs, as values.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example23">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example23" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'try error(&quot;\($__loc__)&quot;) catch .'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>&quot;{\&quot;file\&quot;:\&quot;&lt;top-level&gt;\&quot;,\&quot;line\&quot;:1}&quot;</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="map(x),map_values(x)">
-                  <h3>
-
-<code>map(x)</code>, <code>map_values(x)</code>
-
-
-                  </h3>
-
-<p>For any filter <code>x</code>, <code>map(x)</code> will run that filter for each element of the input array, and produce the outputs a new array. <code>map(.+1)</code> will increment each element of an array of numbers.</p>
-
-<p>Similarly, <code>map_values(x)</code> will run that filter for each element, but it will return an object when an object is passed.</p>
-
-<p><code>map(x)</code> is equivalent to <code>[.[] | x]</code>. In fact, this is how it’s defined. Similarly, <code>map_values(x)</code> is defined as <code>.[] |= x</code>.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example24">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example24" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'map(.+1)'</td></tr>
-                            <tr><th>Input</th><td>[1,2,3]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[2,3,4]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'map_values(.+1)'</td></tr>
-                            <tr><th>Input</th><td>{&quot;a&quot;: 1, &quot;b&quot;: 2, &quot;c&quot;: 3}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>{&quot;a&quot;: 2, &quot;b&quot;: 3, &quot;c&quot;: 4}</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="paths,paths(node_filter),leaf_paths">
-                  <h3>
-
-<code>paths</code>, <code>paths(node_filter)</code>, <code>leaf_paths</code>
-
-
-                  </h3>
-
-<p><code>paths</code> outputs the paths to all the elements in its input (except it does not output the empty list, representing . itself).</p>
-
-<p><code>paths(f)</code> outputs the paths to any values for which <code>f</code> is true. That is, <code>paths(numbers)</code> outputs the paths to all numeric values.</p>
-
-<p><code>leaf_paths</code> is an alias of <code>paths(scalars)</code>; <code>leaf_paths</code> is <em>deprecated</em> and will be removed in the next major release.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example25">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example25" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[paths]'</td></tr>
-                            <tr><th>Input</th><td>[1,[[],{&quot;a&quot;:2}]]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[[0],[1],[1,0],[1,1],[1,1,&quot;a&quot;]]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[paths(scalars)]'</td></tr>
-                            <tr><th>Input</th><td>[1,[[],{&quot;a&quot;:2}]]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[[0],[1,1,&quot;a&quot;]]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="add">
-                  <h3>
-
-<code>add</code>
-
-
-                  </h3>
-
-<p>The filter <code>add</code> takes as input an array, and produces as output the elements of the array added together. This might mean summed, concatenated or merged depending on the types of the elements of the input array - the rules are the same as those for the <code>+</code> operator (described above).</p>
-
-<p>If the input is an empty array, <code>add</code> returns <code>null</code>.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example26">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example26" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'add'</td></tr>
-                            <tr><th>Input</th><td>[&quot;a&quot;,&quot;b&quot;,&quot;c&quot;]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>&quot;abc&quot;</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'add'</td></tr>
-                            <tr><th>Input</th><td>[1, 2, 3]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>6</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'add'</td></tr>
-                            <tr><th>Input</th><td>[]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>null</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="any,any(condition),any(generator;condition)">
-                  <h3>
-
-<code>any</code>, <code>any(condition)</code>, <code>any(generator; condition)</code>
-
-
-                  </h3>
-
-<p>The filter <code>any</code> takes as input an array of boolean values, and produces <code>true</code> as output if any of the elements of the array are <code>true</code>.</p>
-
-<p>If the input is an empty array, <code>any</code> returns <code>false</code>.</p>
-
-<p>The <code>any(condition)</code> form applies the given condition to the elements of the input array.</p>
-
-<p>The <code>any(generator; condition)</code> form applies the given condition to all the outputs of the given generator.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example27">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example27" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'any'</td></tr>
-                            <tr><th>Input</th><td>[true, false]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>true</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'any'</td></tr>
-                            <tr><th>Input</th><td>[false, false]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>false</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'any'</td></tr>
-                            <tr><th>Input</th><td>[]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>false</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="all,all(condition),all(generator;condition)">
-                  <h3>
-
-<code>all</code>, <code>all(condition)</code>, <code>all(generator; condition)</code>
-
-
-                  </h3>
-
-<p>The filter <code>all</code> takes as input an array of boolean values, and produces <code>true</code> as output if all of the elements of the array are <code>true</code>.</p>
-
-<p>The <code>all(condition)</code> form applies the given condition to the elements of the input array.</p>
-
-<p>The <code>all(generator; condition)</code> form applies the given condition to all the outputs of the given generator.</p>
-
-<p>If the input is an empty array, <code>all</code> returns <code>true</code>.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example28">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example28" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'all'</td></tr>
-                            <tr><th>Input</th><td>[true, false]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>false</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'all'</td></tr>
-                            <tr><th>Input</th><td>[true, true]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>true</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'all'</td></tr>
-                            <tr><th>Input</th><td>[]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>true</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="flatten,flatten(depth)">
-                  <h3>
-
-<code>flatten</code>, <code>flatten(depth)</code>
-
-
-                  </h3>
-
-<p>The filter <code>flatten</code> takes as input an array of nested arrays, and produces a flat array in which all arrays inside the original array have been recursively replaced by their values. You can pass an argument to it to specify how many levels of nesting to flatten.</p>
-
-<p><code>flatten(2)</code> is like <code>flatten</code>, but going only up to two levels deep.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example29">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example29" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'flatten'</td></tr>
-                            <tr><th>Input</th><td>[1, [2], [[3]]]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[1, 2, 3]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'flatten(1)'</td></tr>
-                            <tr><th>Input</th><td>[1, [2], [[3]]]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[1, 2, [3]]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'flatten'</td></tr>
-                            <tr><th>Input</th><td>[[]]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'flatten'</td></tr>
-                            <tr><th>Input</th><td>[{&quot;foo&quot;: &quot;bar&quot;}, [{&quot;foo&quot;: &quot;baz&quot;}]]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[{&quot;foo&quot;: &quot;bar&quot;}, {&quot;foo&quot;: &quot;baz&quot;}]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="range(upto),range(from;upto)range(from;upto;by)">
-                  <h3>
-
-<code>range(upto)</code>, <code>range(from;upto)</code> <code>range(from;upto;by)</code>
-
-
-                  </h3>
-
-<p>The <code>range</code> function produces a range of numbers. <code>range(4;10)</code> produces 6 numbers, from 4 (inclusive) to 10 (exclusive). The numbers are produced as separate outputs. Use <code>[range(4;10)]</code> to get a range as an array.</p>
-
-<p>The one argument form generates numbers from 0 to the given number, with an increment of 1.</p>
-
-<p>The two argument form generates numbers from <code>from</code> to <code>upto</code> with an increment of 1.</p>
-
-<p>The three argument form generates numbers <code>from</code> to <code>upto</code> with an increment of <code>by</code>.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example30">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example30" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'range(2;4)'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>2</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>3</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[range(2;4)]'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[2,3]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[range(4)]'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[0,1,2,3]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[range(0;10;3)]'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[0,3,6,9]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[range(0;10;-1)]'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[range(0;-5;-1)]'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[0,-1,-2,-3,-4]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="floor">
-                  <h3>
-
-<code>floor</code>
-
-
-                  </h3>
-
-<p>The <code>floor</code> function returns the floor of its numeric input.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example31">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example31" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'floor'</td></tr>
-                            <tr><th>Input</th><td>3.14159</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>3</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="sqrt">
-                  <h3>
-
-<code>sqrt</code>
-
-
-                  </h3>
-
-<p>The <code>sqrt</code> function returns the square root of its numeric input.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example32">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example32" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'sqrt'</td></tr>
-                            <tr><th>Input</th><td>9</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>3</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="tonumber">
-                  <h3>
-
-<code>tonumber</code>
-
-
-                  </h3>
-
-<p>The <code>tonumber</code> function parses its input as a number. It will convert correctly-formatted strings to their numeric equivalent, leave numbers alone, and give an error on all other input.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example33">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example33" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[] | tonumber'</td></tr>
-                            <tr><th>Input</th><td>[1, &quot;1&quot;]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>1</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>1</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="tostring">
-                  <h3>
-
-<code>tostring</code>
-
-
-                  </h3>
-
-<p>The <code>tostring</code> function prints its input as a string. Strings are left unchanged, and all other values are JSON-encoded.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example34">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example34" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[] | tostring'</td></tr>
-                            <tr><th>Input</th><td>[1, &quot;1&quot;, [1]]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>&quot;1&quot;</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>&quot;1&quot;</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>&quot;[1]&quot;</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="type">
-                  <h3>
-
-<code>type</code>
-
-
-                  </h3>
-
-<p>The <code>type</code> function returns the type of its argument as a string, which is one of null, boolean, number, string, array or object.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example35">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example35" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'map(type)'</td></tr>
-                            <tr><th>Input</th><td>[0, false, [], {}, null, &quot;hello&quot;]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[&quot;number&quot;, &quot;boolean&quot;, &quot;array&quot;, &quot;object&quot;, &quot;null&quot;, &quot;string&quot;]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="infinite,nan,isinfinite,isnan,isfinite,isnormal">
-                  <h3>
-
-<code>infinite</code>, <code>nan</code>, <code>isinfinite</code>, <code>isnan</code>, <code>isfinite</code>, <code>isnormal</code>
-
-
-                  </h3>
-
-<p>Some arithmetic operations can yield infinities and “not a number” (NaN) values. The <code>isinfinite</code> builtin returns <code>true</code> if its input is infinite. The <code>isnan</code> builtin returns <code>true</code> if its input is a NaN. The <code>infinite</code> builtin returns a positive infinite value. The <code>nan</code> builtin returns a NaN. The <code>isnormal</code> builtin returns true if its input is a normal number.</p>
-
-<p>Note that division by zero raises an error.</p>
-
-<p>Currently most arithmetic operations operating on infinities, NaNs, and sub-normals do not raise errors.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example36">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example36" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[] | (infinite * .) &lt; 0'</td></tr>
-                            <tr><th>Input</th><td>[-1, 1]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>true</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>false</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'infinite, nan | type'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>&quot;number&quot;</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>&quot;number&quot;</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="sort,sort_by(path_expression)">
-                  <h3>
-
-<code>sort, sort_by(path_expression)</code>
-
-
-                  </h3>
-
-<p>The <code>sort</code> functions sorts its input, which must be an array. Values are sorted in the following order:</p>
-
-<ul>
-<li><code>null</code></li>
-
-<li><code>false</code></li>
-
-<li><code>true</code></li>
-
-<li>numbers</li>
-
-<li>strings, in alphabetical order (by unicode codepoint value)</li>
-
-<li>arrays, in lexical order</li>
-
-<li>objects</li>
-</ul>
-
-<p>The ordering for objects is a little complex: first they’re compared by comparing their sets of keys (as arrays in sorted order), and if their keys are equal then the values are compared key by key.</p>
-
-<p><code>sort</code> may be used to sort by a particular field of an object, or by applying any jq filter.</p>
-
-<p><code>sort_by(foo)</code> compares two elements by comparing the result of <code>foo</code> on each element.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example37">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example37" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'sort'</td></tr>
-                            <tr><th>Input</th><td>[8,3,null,6]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[null,3,6,8]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'sort_by(.foo)'</td></tr>
-                            <tr><th>Input</th><td>[{&quot;foo&quot;:4, &quot;bar&quot;:10}, {&quot;foo&quot;:3, &quot;bar&quot;:100}, {&quot;foo&quot;:2, &quot;bar&quot;:1}]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[{&quot;foo&quot;:2, &quot;bar&quot;:1}, {&quot;foo&quot;:3, &quot;bar&quot;:100}, {&quot;foo&quot;:4, &quot;bar&quot;:10}]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="group_by(path_expression)">
-                  <h3>
-
-<code>group_by(path_expression)</code>
-
-
-                  </h3>
-
-<p><code>group_by(.foo)</code> takes as input an array, groups the elements having the same <code>.foo</code> field into separate arrays, and produces all of these arrays as elements of a larger array, sorted by the value of the <code>.foo</code> field.</p>
-
-<p>Any jq expression, not just a field access, may be used in place of <code>.foo</code>. The sorting order is the same as described in the <code>sort</code> function above.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example38">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example38" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'group_by(.foo)'</td></tr>
-                            <tr><th>Input</th><td>[{&quot;foo&quot;:1, &quot;bar&quot;:10}, {&quot;foo&quot;:3, &quot;bar&quot;:100}, {&quot;foo&quot;:1, &quot;bar&quot;:1}]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[[{&quot;foo&quot;:1, &quot;bar&quot;:10}, {&quot;foo&quot;:1, &quot;bar&quot;:1}], [{&quot;foo&quot;:3, &quot;bar&quot;:100}]]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="min,max,min_by(path_exp),max_by(path_exp)">
-                  <h3>
-
-<code>min</code>, <code>max</code>, <code>min_by(path_exp)</code>, <code>max_by(path_exp)</code>
-
-
-                  </h3>
-
-<p>Find the minimum or maximum element of the input array.</p>
-
-<p>The <code>min_by(path_exp)</code> and <code>max_by(path_exp)</code> functions allow you to specify a particular field or property to examine, e.g. <code>min_by(.foo)</code> finds the object with the smallest <code>foo</code> field.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example39">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example39" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'min'</td></tr>
-                            <tr><th>Input</th><td>[5,4,2,7]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>2</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'max_by(.foo)'</td></tr>
-                            <tr><th>Input</th><td>[{&quot;foo&quot;:1, &quot;bar&quot;:14}, {&quot;foo&quot;:2, &quot;bar&quot;:3}]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>{&quot;foo&quot;:2, &quot;bar&quot;:3}</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="unique,unique_by(path_exp)">
-                  <h3>
-
-<code>unique</code>, <code>unique_by(path_exp)</code>
-
-
-                  </h3>
-
-<p>The <code>unique</code> function takes as input an array and produces an array of the same elements, in sorted order, with duplicates removed.</p>
-
-<p>The <code>unique_by(path_exp)</code> function will keep only one element for each value obtained by applying the argument. Think of it as making an array by taking one element out of every group produced by <code>group</code>.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example40">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example40" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'unique'</td></tr>
-                            <tr><th>Input</th><td>[1,2,5,3,5,3,1,3]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[1,2,3,5]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'unique_by(.foo)'</td></tr>
-                            <tr><th>Input</th><td>[{&quot;foo&quot;: 1, &quot;bar&quot;: 2}, {&quot;foo&quot;: 1, &quot;bar&quot;: 3}, {&quot;foo&quot;: 4, &quot;bar&quot;: 5}]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[{&quot;foo&quot;: 1, &quot;bar&quot;: 2}, {&quot;foo&quot;: 4, &quot;bar&quot;: 5}]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'unique_by(length)'</td></tr>
-                            <tr><th>Input</th><td>[&quot;chunky&quot;, &quot;bacon&quot;, &quot;kitten&quot;, &quot;cicada&quot;, &quot;asparagus&quot;]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[&quot;bacon&quot;, &quot;chunky&quot;, &quot;asparagus&quot;]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="reverse">
-                  <h3>
-
-<code>reverse</code>
-
-
-                  </h3>
-
-<p>This function reverses an array.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example41">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example41" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'reverse'</td></tr>
-                            <tr><th>Input</th><td>[1,2,3,4]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[4,3,2,1]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="contains(element)">
-                  <h3>
-
-<code>contains(element)</code>
-
-
-                  </h3>
-
-<p>The filter <code>contains(b)</code> will produce true if b is completely contained within the input. A string B is contained in a string A if B is a substring of A. An array B is contained in an array A if all elements in B are contained in any element in A. An object B is contained in object A if all of the values in B are contained in the value in A with the same key. All other types are assumed to be contained in each other if they are equal.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example42">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example42" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'contains(&quot;bar&quot;)'</td></tr>
-                            <tr><th>Input</th><td>&quot;foobar&quot;</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>true</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'contains([&quot;baz&quot;, &quot;bar&quot;])'</td></tr>
-                            <tr><th>Input</th><td>[&quot;foobar&quot;, &quot;foobaz&quot;, &quot;blarp&quot;]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>true</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'contains([&quot;bazzzzz&quot;, &quot;bar&quot;])'</td></tr>
-                            <tr><th>Input</th><td>[&quot;foobar&quot;, &quot;foobaz&quot;, &quot;blarp&quot;]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>false</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'contains({foo: 12, bar: [{barp: 12}]})'</td></tr>
-                            <tr><th>Input</th><td>{&quot;foo&quot;: 12, &quot;bar&quot;:[1,2,{&quot;barp&quot;:12, &quot;blip&quot;:13}]}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>true</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'contains({foo: 12, bar: [{barp: 15}]})'</td></tr>
-                            <tr><th>Input</th><td>{&quot;foo&quot;: 12, &quot;bar&quot;:[1,2,{&quot;barp&quot;:12, &quot;blip&quot;:13}]}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>false</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="indices(s)">
-                  <h3>
-
-<code>indices(s)</code>
-
-
-                  </h3>
-
-<p>Outputs an array containing the indices in <code>.</code> where <code>s</code> occurs. The input may be an array, in which case if <code>s</code> is an array then the indices output will be those where all elements in <code>.</code> match those of <code>s</code>.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example43">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example43" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'indices(&quot;, &quot;)'</td></tr>
-                            <tr><th>Input</th><td>&quot;a,b, cd, efg, hijk&quot;</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[3,7,12]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'indices(1)'</td></tr>
-                            <tr><th>Input</th><td>[0,1,2,1,3,1,4]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[1,3,5]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'indices([1,2])'</td></tr>
-                            <tr><th>Input</th><td>[0,1,2,3,1,4,2,5,1,2,6,7]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[1,8]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="index(s),rindex(s)">
-                  <h3>
-
-<code>index(s)</code>, <code>rindex(s)</code>
-
-
-                  </h3>
-
-<p>Outputs the index of the first (<code>index</code>) or last (<code>rindex</code>) occurrence of <code>s</code> in the input.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example44">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example44" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'index(&quot;, &quot;)'</td></tr>
-                            <tr><th>Input</th><td>&quot;a,b, cd, efg, hijk&quot;</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>3</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'rindex(&quot;, &quot;)'</td></tr>
-                            <tr><th>Input</th><td>&quot;a,b, cd, efg, hijk&quot;</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>12</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="inside">
-                  <h3>
-
-<code>inside</code>
-
-
-                  </h3>
-
-<p>The filter <code>inside(b)</code> will produce true if the input is completely contained within b. It is, essentially, an inversed version of <code>contains</code>.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example45">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example45" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'inside(&quot;foobar&quot;)'</td></tr>
-                            <tr><th>Input</th><td>&quot;bar&quot;</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>true</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'inside([&quot;foobar&quot;, &quot;foobaz&quot;, &quot;blarp&quot;])'</td></tr>
-                            <tr><th>Input</th><td>[&quot;baz&quot;, &quot;bar&quot;]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>true</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'inside([&quot;foobar&quot;, &quot;foobaz&quot;, &quot;blarp&quot;])'</td></tr>
-                            <tr><th>Input</th><td>[&quot;bazzzzz&quot;, &quot;bar&quot;]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>false</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'inside({&quot;foo&quot;: 12, &quot;bar&quot;:[1,2,{&quot;barp&quot;:12, &quot;blip&quot;:13}]})'</td></tr>
-                            <tr><th>Input</th><td>{&quot;foo&quot;: 12, &quot;bar&quot;: [{&quot;barp&quot;: 12}]}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>true</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'inside({&quot;foo&quot;: 12, &quot;bar&quot;:[1,2,{&quot;barp&quot;:12, &quot;blip&quot;:13}]})'</td></tr>
-                            <tr><th>Input</th><td>{&quot;foo&quot;: 12, &quot;bar&quot;: [{&quot;barp&quot;: 15}]}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>false</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="startswith(str)">
-                  <h3>
-
-<code>startswith(str)</code>
-
-
-                  </h3>
-
-<p>Outputs <code>true</code> if . starts with the given string argument.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example46">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example46" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[.[]|startswith(&quot;foo&quot;)]'</td></tr>
-                            <tr><th>Input</th><td>[&quot;fo&quot;, &quot;foo&quot;, &quot;barfoo&quot;, &quot;foobar&quot;, &quot;barfoob&quot;]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[false, true, false, true, false]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="endswith(str)">
-                  <h3>
-
-<code>endswith(str)</code>
-
-
-                  </h3>
-
-<p>Outputs <code>true</code> if . ends with the given string argument.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example47">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example47" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[.[]|endswith(&quot;foo&quot;)]'</td></tr>
-                            <tr><th>Input</th><td>[&quot;foobar&quot;, &quot;barfoo&quot;]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[false, true]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="combinations,combinations(n)">
-                  <h3>
-
-<code>combinations</code>, <code>combinations(n)</code>
-
-
-                  </h3>
-
-<p>Outputs all combinations of the elements of the arrays in the input array. If given an argument <code>n</code>, it outputs all combinations of <code>n</code> repetitions of the input array.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example48">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example48" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'combinations'</td></tr>
-                            <tr><th>Input</th><td>[[1,2], [3, 4]]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[1, 3]</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>[1, 4]</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>[2, 3]</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>[2, 4]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'combinations(2)'</td></tr>
-                            <tr><th>Input</th><td>[0, 1]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[0, 0]</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>[0, 1]</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>[1, 0]</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>[1, 1]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="ltrimstr(str)">
-                  <h3>
-
-<code>ltrimstr(str)</code>
-
-
-                  </h3>
-
-<p>Outputs its input with the given prefix string removed, if it starts with it.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example49">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example49" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[.[]|ltrimstr(&quot;foo&quot;)]'</td></tr>
-                            <tr><th>Input</th><td>[&quot;fo&quot;, &quot;foo&quot;, &quot;barfoo&quot;, &quot;foobar&quot;, &quot;afoo&quot;]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[&quot;fo&quot;,&quot;&quot;,&quot;barfoo&quot;,&quot;bar&quot;,&quot;afoo&quot;]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="rtrimstr(str)">
-                  <h3>
-
-<code>rtrimstr(str)</code>
-
-
-                  </h3>
-
-<p>Outputs its input with the given suffix string removed, if it ends with it.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example50">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example50" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[.[]|rtrimstr(&quot;foo&quot;)]'</td></tr>
-                            <tr><th>Input</th><td>[&quot;fo&quot;, &quot;foo&quot;, &quot;barfoo&quot;, &quot;foobar&quot;, &quot;foob&quot;]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[&quot;fo&quot;,&quot;&quot;,&quot;bar&quot;,&quot;foobar&quot;,&quot;foob&quot;]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="explode">
-                  <h3>
-
-<code>explode</code>
-
-
-                  </h3>
-
-<p>Converts an input string into an array of the string’s codepoint numbers.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example51">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example51" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'explode'</td></tr>
-                            <tr><th>Input</th><td>&quot;foobar&quot;</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[102,111,111,98,97,114]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="implode">
-                  <h3>
-
-<code>implode</code>
-
-
-                  </h3>
-
-<p>The inverse of explode.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example52">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example52" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'implode'</td></tr>
-                            <tr><th>Input</th><td>[65, 66, 67]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>&quot;ABC&quot;</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="split">
-                  <h3>
-
-<code>split</code>
-
-
-                  </h3>
-
-<p>Splits an input string on the separator argument.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example53">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example53" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'split(&quot;, &quot;)'</td></tr>
-                            <tr><th>Input</th><td>&quot;a, b,c,d, e, &quot;</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[&quot;a&quot;,&quot;b,c,d&quot;,&quot;e&quot;,&quot;&quot;]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="join(str)">
-                  <h3>
-
-<code>join(str)</code>
-
-
-                  </h3>
-
-<p>Joins the array of elements given as input, using the argument as separator. It is the inverse of <code>split</code>: that is, running <code>split(&quot;foo&quot;) | join(&quot;foo&quot;)</code> over any input string returns said input string.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example54">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example54" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'join(&quot;, &quot;)'</td></tr>
-                            <tr><th>Input</th><td>[&quot;a&quot;,&quot;b,c,d&quot;,&quot;e&quot;]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>&quot;a, b,c,d, e&quot;</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="ascii_downcase,ascii_upcase">
-                  <h3>
-
-<code>ascii_downcase</code>, <code>ascii_upcase</code>
-
-
-                  </h3>
-
-<p>Emit a copy of the input string with its alphabetic characters (a-z and A-Z) converted to the specified case.</p>
-
-
-
-                </section>
-
-                <section id="while(cond;update)">
-                  <h3>
-
-<code>while(cond; update)</code>
-
-
-                  </h3>
-
-<p>The <code>while(cond; update)</code> function allows you to repeatedly apply an update to <code>.</code> until <code>cond</code> is false.</p>
-
-<p>Note that <code>while(cond; update)</code> is internally defined as a recursive jq function. Recursive calls within <code>while</code> will not consume additional memory if <code>update</code> produces at most one output for each input. See advanced topics below.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example55">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example55" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[while(.&lt;100; .*2)]'</td></tr>
-                            <tr><th>Input</th><td>1</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[1,2,4,8,16,32,64]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="until(cond;next)">
-                  <h3>
-
-<code>until(cond; next)</code>
-
-
-                  </h3>
-
-<p>The <code>until(cond; next)</code> function allows you to repeatedly apply the expression <code>next</code>, initially to <code>.</code> then to its own output, until <code>cond</code> is true. For example, this can be used to implement a factorial function (see below).</p>
-
-<p>Note that <code>until(cond; next)</code> is internally defined as a recursive jq function. Recursive calls within <code>until()</code> will not consume additional memory if <code>next</code> produces at most one output for each input. See advanced topics below.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example56">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example56" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[.,1]|until(.[0] &lt; 1; [.[0] - 1, .[1] * .[0]])|.[1]'</td></tr>
-                            <tr><th>Input</th><td>4</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>24</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="recurse(f),recurse,recurse(f;condition),recurse_down">
-                  <h3>
-
-<code>recurse(f)</code>, <code>recurse</code>, <code>recurse(f; condition)</code>, <code>recurse_down</code>
-
-
-                  </h3>
-
-<p>The <code>recurse(f)</code> function allows you to search through a recursive structure, and extract interesting data from all levels. Suppose your input represents a filesystem:</p>
-
-<pre><code>{&quot;name&quot;: &quot;/&quot;, &quot;children&quot;: [
-  {&quot;name&quot;: &quot;/bin&quot;, &quot;children&quot;: [
-    {&quot;name&quot;: &quot;/bin/ls&quot;, &quot;children&quot;: []},
-    {&quot;name&quot;: &quot;/bin/sh&quot;, &quot;children&quot;: []}]},
-  {&quot;name&quot;: &quot;/home&quot;, &quot;children&quot;: [
-    {&quot;name&quot;: &quot;/home/stephen&quot;, &quot;children&quot;: [
-      {&quot;name&quot;: &quot;/home/stephen/jq&quot;, &quot;children&quot;: []}]}]}]}</code></pre>
-
-<p>Now suppose you want to extract all of the filenames present. You need to retrieve <code>.name</code>, <code>.children[].name</code>, <code>.children[].children[].name</code>, and so on. You can do this with:</p>
-
-<pre><code>recurse(.children[]) | .name</code></pre>
-
-<p>When called without an argument, <code>recurse</code> is equivalent to <code>recurse(.[]?)</code>.</p>
-
-<p><code>recurse(f)</code> is identical to <code>recurse(f; . != null)</code> and can be used without concerns about recursion depth.</p>
-
-<p><code>recurse(f; condition)</code> is a generator which begins by emitting . and then emits in turn .|f, .|f|f, .|f|f|f, … so long as the computed value satisfies the condition. For example, to generate all the integers, at least in principle, one could write <code>recurse(.+1; true)</code>.</p>
-
-<p>For legacy reasons, <code>recurse_down</code> exists as an alias to calling <code>recurse</code> without arguments. This alias is considered <em>deprecated</em> and will be removed in the next major release.</p>
-
-<p>The recursive calls in <code>recurse</code> will not consume additional memory whenever <code>f</code> produces at most a single output for each input.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example57">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example57" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'recurse(.foo[])'</td></tr>
-                            <tr><th>Input</th><td>{&quot;foo&quot;:[{&quot;foo&quot;: []}, {&quot;foo&quot;:[{&quot;foo&quot;:[]}]}]}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>{&quot;foo&quot;:[{&quot;foo&quot;:[]},{&quot;foo&quot;:[{&quot;foo&quot;:[]}]}]}</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>{&quot;foo&quot;:[]}</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>{&quot;foo&quot;:[{&quot;foo&quot;:[]}]}</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>{&quot;foo&quot;:[]}</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'recurse'</td></tr>
-                            <tr><th>Input</th><td>{&quot;a&quot;:0,&quot;b&quot;:[1]}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>{&quot;a&quot;:0,&quot;b&quot;:[1]}</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>0</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>[1]</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>1</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'recurse(. * .; . &lt; 20)'</td></tr>
-                            <tr><th>Input</th><td>2</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>2</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>4</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>16</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="..">
-                  <h3>
-
-<code>..</code>
-
-
-                  </h3>
-
-<p>Short-hand for <code>recurse</code> without arguments. This is intended to resemble the XPath <code>//</code> operator. Note that <code>..a</code> does not work; use <code>..|a</code> instead. In the example below we use <code>..|.a?</code> to find all the values of object keys “a” in any object found “below” <code>.</code>.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example58">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example58" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '..|.a?'</td></tr>
-                            <tr><th>Input</th><td>[[{&quot;a&quot;:1}]]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>1</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="env">
-                  <h3>
-
-<code>env</code>
-
-
-                  </h3>
-
-<p>Outputs an object representing jq’s environment.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example59">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example59" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'env.PAGER'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>&quot;less&quot;</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="transpose">
-                  <h3>
-
-<code>transpose</code>
-
-
-                  </h3>
-
-<p>Transpose a possibly jagged matrix (an array of arrays). Rows are padded with nulls so the result is always rectangular.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example60">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example60" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'transpose'</td></tr>
-                            <tr><th>Input</th><td>[[1], [2,3]]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[[1,2],[null,3]]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="bsearch(x)">
-                  <h3>
-
-<code>bsearch(x)</code>
-
-
-                  </h3>
-
-<p>bsearch(x) conducts a binary search for x in the input array. If the input is sorted and contains x, then bsearch(x) will return its index in the array; otherwise, if the array is sorted, it will return (-1 - ix) where ix is an insertion point such that the array would still be sorted after the insertion of x at ix. If the array is not sorted, bsearch(x) will return an integer that is probably of no interest.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example61">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example61" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'bsearch(0)'</td></tr>
-                            <tr><th>Input</th><td>[0,1]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>0</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'bsearch(0)'</td></tr>
-                            <tr><th>Input</th><td>[1,2,3]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>-1</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'bsearch(4) as $ix | if $ix &lt; 0 then .[-(1+$ix)] = 4 else . end'</td></tr>
-                            <tr><th>Input</th><td>[1,2,3]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[1,2,3,4]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="Stringinterpolation-\(foo)">
-                  <h3>
-
-String interpolation - <code>\(foo)</code>
-
-
-                  </h3>
-
-<p>Inside a string, you can put an expression inside parens after a backslash. Whatever the expression returns will be interpolated into the string.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example62">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example62" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '&quot;The input was \(.), which is one less than \(.+1)&quot;'</td></tr>
-                            <tr><th>Input</th><td>42</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>&quot;The input was 42, which is one less than 43&quot;</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="Convertto/fromJSON">
-                  <h3>
-
-Convert to/from JSON
-
-
-                  </h3>
-
-<p>The <code>tojson</code> and <code>fromjson</code> builtins dump values as JSON texts or parse JSON texts into values, respectively. The tojson builtin differs from tostring in that tostring returns strings unmodified, while tojson encodes strings as JSON strings.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example63">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example63" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[.[]|tostring]'</td></tr>
-                            <tr><th>Input</th><td>[1, &quot;foo&quot;, [&quot;foo&quot;]]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[&quot;1&quot;,&quot;foo&quot;,&quot;[\&quot;foo\&quot;]&quot;]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[.[]|tojson]'</td></tr>
-                            <tr><th>Input</th><td>[1, &quot;foo&quot;, [&quot;foo&quot;]]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[&quot;1&quot;,&quot;\&quot;foo\&quot;&quot;,&quot;[\&quot;foo\&quot;]&quot;]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[.[]|tojson|fromjson]'</td></tr>
-                            <tr><th>Input</th><td>[1, &quot;foo&quot;, [&quot;foo&quot;]]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[1,&quot;foo&quot;,[&quot;foo&quot;]]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="Formatstringsandescaping">
-                  <h3>
-
-Format strings and escaping
-
-
-                  </h3>
-
-<p>The <code>@foo</code> syntax is used to format and escape strings, which is useful for building URLs, documents in a language like HTML or XML, and so forth. <code>@foo</code> can be used as a filter on its own, the possible escapings are:</p>
-
-<ul>
-<li>
-<p><code>@text</code>:</p>
-
-<p>Calls <code>tostring</code>, see that function for details.</p>
-</li>
-
-<li>
-<p><code>@json</code>:</p>
-
-<p>Serializes the input as JSON.</p>
-</li>
-
-<li>
-<p><code>@html</code>:</p>
-
-<p>Applies HTML/XML escaping, by mapping the characters <code>&lt;&gt;&amp;'&quot;</code> to their entity equivalents <code>&amp;lt;</code>, <code>&amp;gt;</code>, <code>&amp;amp;</code>, <code>&amp;apos;</code>, <code>&amp;quot;</code>.</p>
-</li>
-
-<li>
-<p><code>@uri</code>:</p>
-
-<p>Applies percent-encoding, by mapping all reserved URI characters to a <code>%XX</code> sequence.</p>
-</li>
-
-<li>
-<p><code>@csv</code>:</p>
-
-<p>The input must be an array, and it is rendered as CSV with double quotes for strings, and quotes escaped by repetition.</p>
-</li>
-
-<li>
-<p><code>@tsv</code>:</p>
-
-<p>The input must be an array, and it is rendered as TSV (tab-separated values). Each input array will be printed as a single line. Fields are separated by a single tab (ascii <code>0x09</code>). Input characters line-feed (ascii <code>0x0a</code>), carriage-return (ascii <code>0x0d</code>), tab (ascii <code>0x09</code>) and backslash (ascii <code>0x5c</code>) will be output as escape sequences <code>\n</code>, <code>\r</code>, <code>\t</code>, <code>\\</code> respectively.</p>
-</li>
-
-<li>
-<p><code>@sh</code>:</p>
-
-<p>The input is escaped suitable for use in a command-line for a POSIX shell. If the input is an array, the output will be a series of space-separated strings.</p>
-</li>
-
-<li>
-<p><code>@base64</code>:</p>
-
-<p>The input is converted to base64 as specified by RFC 4648.</p>
-</li>
-</ul>
-
-<p>This syntax can be combined with string interpolation in a useful way. You can follow a <code>@foo</code> token with a string literal. The contents of the string literal will <em>not</em> be escaped. However, all interpolations made inside that string literal will be escaped. For instance,</p>
-
-<pre><code>@uri &quot;https://www.google.com/search?q=\(.search)&quot;</code></pre>
-
-<p>will produce the following output for the input <code>{&quot;search&quot;:&quot;what is jq?&quot;}</code>:</p>
-
-<pre><code>&quot;https://www.google.com/search?q=what%20is%20jq%3F&quot;</code></pre>
-
-<p>Note that the slashes, question mark, etc. in the URL are not escaped, as they were part of the string literal.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example64">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example64" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '@html'</td></tr>
-                            <tr><th>Input</th><td>&quot;This works if x &lt; y&quot;</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>&quot;This works if x &amp;lt; y&quot;</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '@sh &quot;echo \(.)&quot;'</td></tr>
-                            <tr><th>Input</th><td>&quot;O'Hara's Ale&quot;</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>&quot;echo 'O'\\''Hara'\\''s Ale'&quot;</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="Dates">
-                  <h3>
-
-Dates
-
-
-                  </h3>
-
-<p>jq provides some basic date handling functionality, with some high-level and low-level builtins. In all cases these builtins deal exclusively with time in UTC.</p>
-
-<p>The <code>fromdateiso8601</code> builtin parses datetimes in the ISO 8601 format to a number of seconds since the Unix epoch (1970-01-01T00:00:00Z). The <code>todateiso8601</code> builtin does the inverse.</p>
-
-<p>The <code>fromdate</code> builtin parses datetime strings. Currently <code>fromdate</code> only supports ISO 8601 datetime strings, but in the future it will attempt to parse datetime strings in more formats.</p>
-
-<p>The <code>todate</code> builtin is an alias for <code>todateiso8601</code>.</p>
-
-<p>The <code>now</code> builtin outputs the current time, in seconds since the Unix epoch.</p>
-
-<p>Low-level jq interfaces to the C-library time functions are also provided: <code>strptime</code>, <code>strftime</code>, <code>mktime</code>, and <code>gmtime</code>. Refer to your host operating system’s documentation for the format strings used by <code>strptime</code> and <code>strftime</code>. Note: these are not necessarily stable interfaces in jq, particularly as to their localization functionality.</p>
-
-<p>The <code>gmtime</code> builtin consumes a number of seconds since the Unix epoch and outputs a “broken down time” representation of time as an array of numbers representing (in this order): the year, the month (zero-based), the day of the month, the hour of the day, the minute of the hour, the second of the minute, the day of the week, and the day of the year – all one-based unless otherwise stated.</p>
-
-<p>The <code>mktime</code> builtin consumes “broken down time” representations of time output by <code>gmtime</code> and <code>strptime</code>.</p>
-
-<p>The <code>strptime(fmt)</code> builtin parses input strings matching the <code>fmt</code> argument. The output is in the “broken down time” representation consumed by <code>gmtime</code> and output by <code>mktime</code>.</p>
-
-<p>The <code>strftime(fmt)</code> builtin formats a time with the given format.</p>
-
-<p>The format strings for <code>strptime</code> and <code>strftime</code> are described in typical C library documentation. The format string for ISO 8601 datetime is <code>&quot;%Y-%m-%dT%H:%M:%SZ&quot;</code>.</p>
-
-<p>jq may not support some or all of this date functionality on some systems.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example65">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example65" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'fromdate'</td></tr>
-                            <tr><th>Input</th><td>&quot;2015-03-05T23:51:47Z&quot;</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>1425599507</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'strptime(&quot;%Y-%m-%dT%H:%M:%SZ&quot;)'</td></tr>
-                            <tr><th>Input</th><td>&quot;2015-03-05T23:51:47Z&quot;</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[2015,2,5,23,51,47,4,63]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'strptime(&quot;%Y-%m-%dT%H:%M:%SZ&quot;)|mktime'</td></tr>
-                            <tr><th>Input</th><td>&quot;2015-03-05T23:51:47Z&quot;</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>1425599507</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-            </section>
-
-            <section id="ConditionalsandComparisons">
-              <h2>Conditionals and Comparisons</h2>
-
-
-                <section id="==,!=">
-                  <h3>
-
-<code>==</code>, <code>!=</code>
-
-
-                  </h3>
-
-<p>The expression ‘a == b’ will produce ‘true’ if the result of a and b are equal (that is, if they represent equivalent JSON documents) and ‘false’ otherwise. In particular, strings are never considered equal to numbers. If you’re coming from Javascript, jq’s == is like Javascript’s === - considering values equal only when they have the same type as well as the same value.</p>
-
-<p>!= is “not equal”, and ‘a != b’ returns the opposite value of ‘a == b’</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example66">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example66" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[] == 1'</td></tr>
-                            <tr><th>Input</th><td>[1, 1.0, &quot;1&quot;, &quot;banana&quot;]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>true</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>true</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>false</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>false</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="if-then-else">
-                  <h3>
-
-if-then-else
-
-
-                  </h3>
-
-<p><code>if A then B else C end</code> will act the same as <code>B</code> if <code>A</code> produces a value other than false or null, but act the same as <code>C</code> otherwise.</p>
-
-<p>Checking for false or null is a simpler notion of “truthiness” than is found in Javascript or Python, but it means that you’ll sometimes have to be more explicit about the condition you want: you can’t test whether, e.g. a string is empty using <code>if .name then A else B end</code>, you’ll need something more like <code>if (.name | length) &gt; 0 then A else
-B end</code> instead.</p>
-
-<p>If the condition <code>A</code> produces multiple results, then <code>B</code> is evaluated once for each result that is not false or null, and <code>C</code> is evaluated once for each false or null.</p>
-
-<p>More cases can be added to an if using <code>elif A then B</code> syntax.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example67">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example67" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'if . == 0 then
-  &quot;zero&quot;
-elif . == 1 then
-  &quot;one&quot;
-else
-  &quot;many&quot;
-end'</td></tr>
-                            <tr><th>Input</th><td>2</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>&quot;many&quot;</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id=">,>=,<=,<">
-                  <h3>
-
-<code>&gt;, &gt;=, &lt;=, &lt;</code>
-
-
-                  </h3>
-
-<p>The comparison operators <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;=</code>, <code>&lt;</code> return whether their left argument is greater than, greater than or equal to, less than or equal to or less than their right argument (respectively).</p>
-
-<p>The ordering is the same as that described for <code>sort</code>, above.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example68">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example68" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '. &lt; 5'</td></tr>
-                            <tr><th>Input</th><td>2</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>true</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="and/or/not">
-                  <h3>
-
-and/or/not
-
-
-                  </h3>
-
-<p>jq supports the normal Boolean operators and/or/not. They have the same standard of truth as if expressions - false and null are considered “false values”, and anything else is a “true value”.</p>
-
-<p>If an operand of one of these operators produces multiple results, the operator itself will produce a result for each input.</p>
-
-<p><code>not</code> is in fact a builtin function rather than an operator, so it is called as a filter to which things can be piped rather than with special syntax, as in <code>.foo and .bar |
-not</code>.</p>
-
-<p>These three only produce the values “true” and “false”, and so are only useful for genuine Boolean operations, rather than the common Perl/Python/Ruby idiom of “value_that_may_be_null or default”. If you want to use this form of “or”, picking between two values rather than evaluating a condition, see the “//” operator below.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example69">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example69" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '42 and &quot;a string&quot;'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>true</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '(true, false) or false'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>true</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>false</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '(true, true) and (true, false)'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>true</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>false</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>true</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>false</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[true, false | not]'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[false, true]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="Alternativeoperator-//">
-                  <h3>
-
-Alternative operator - <code>//</code>
-
-
-                  </h3>
-
-<p>A filter of the form <code>a // b</code> produces the same results as <code>a</code>, if <code>a</code> produces results other than <code>false</code> and <code>null</code>. Otherwise, <code>a // b</code> produces the same results as <code>b</code>.</p>
-
-<p>This is useful for providing defaults: <code>.foo // 1</code> will evaluate to <code>1</code> if there’s no <code>.foo</code> element in the input. It’s similar to how <code>or</code> is sometimes used in Python (jq’s <code>or</code> operator is reserved for strictly Boolean operations).</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example70">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example70" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.foo // 42'</td></tr>
-                            <tr><th>Input</th><td>{&quot;foo&quot;: 19}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>19</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.foo // 42'</td></tr>
-                            <tr><th>Input</th><td>{}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>42</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="try-catch">
-                  <h3>
-
-try-catch
-
-
-                  </h3>
-
-<p>Errors can be caught by using <code>try EXP catch EXP</code>. The first expression is executed, and if it fails then the second is executed with the error message. The output of the handler, if any, is output as if it had been the output of the expression to try.</p>
-
-<p>The <code>try EXP</code> form uses <code>empty</code> as the exception handler.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example71">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example71" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'try .a catch &quot;. is not an object&quot;'</td></tr>
-                            <tr><th>Input</th><td>true</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>&quot;. is not an object&quot;</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[.[]|try .a]'</td></tr>
-                            <tr><th>Input</th><td>[{}, true, {&quot;a&quot;:1}]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[null, 1]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'try error(&quot;some exception&quot;) catch .'</td></tr>
-                            <tr><th>Input</th><td>true</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>&quot;some exception&quot;</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="Breakingoutofcontrolstructures">
-                  <h3>
-
-Breaking out of control structures
-
-
-                  </h3>
-
-<p>A convenient use of try/catch is to break out of control structures like <code>reduce</code>, <code>foreach</code>, <code>while</code>, and so on.</p>
-
-<p>For example:</p>
-
-<pre><code># Repeat an expression until it raises &quot;break&quot; as an
-# error, then stop repeating without re-raising the error.
-# But if the error caught is not &quot;break&quot; then re-raise it.
-try repeat(exp) catch .==&quot;break&quot; then empty else error;</code></pre>
-
-<p>jq has a syntax for named lexical labels to “break” or “go (back) to”:</p>
-
-<pre><code>label $out | ... break $out ...</code></pre>
-
-<p>The <code>break $label_name</code> expression will cause the program to to act as though the nearest (to the left) <code>label $label_name</code> produced <code>empty</code>.</p>
-
-<p>The relationship between the <code>break</code> and corresponding <code>label</code> is lexical: the label has to be “visible” from the break.</p>
-
-<p>To break out of a <code>reduce</code>, for example:</p>
-
-<pre><code>label $out | reduce .[] as $item (null; if .==false then break $out else ... end)</code></pre>
-
-<p>The following jq program produces a syntax error:</p>
-
-<pre><code>break $out</code></pre>
-
-<p>because no label <code>$out</code> is visible.</p>
-
-
-
-                </section>
-
-                <section id="?operator">
-                  <h3>
-
-<code>?</code> operator
-
-
-                  </h3>
-
-<p>The <code>?</code> operator, used as <code>EXP?</code>, is shorthand for <code>try EXP</code>.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example72">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example72" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[.[]|(.a)?]'</td></tr>
-                            <tr><th>Input</th><td>[{}, true, {&quot;a&quot;:1}]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[null, 1]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-            </section>
-
-            <section id="RegularexpressionsPCRE">
-              <h2>Regular expressions (PCRE)</h2>
-
-<p>jq uses the Oniguruma regular expression library, as do php, ruby, TextMate, Sublime Text, etc, so the description here will focus on jq specifics.</p>
-
-<p>The jq regex filters are defined so that they can be used using one of these patterns:</p>
-
-<pre><code>STRING | FILTER( REGEX )
-STRING | FILTER( REGEX; FLAGS )
-STRING | FILTER( [REGEX] )
-STRING | FILTER( [REGEX, FLAGS] )</code></pre>
-
-<p>where:</p>
-
-<ul>
-<li>STRING, REGEX and FLAGS are jq strings and subject to jq string interpolation;</li>
-
-<li>REGEX, after string interpolation, should be a valid PCRE regex;</li>
-
-<li>FILTER is one of <code>test</code>, <code>match</code>, or <code>capture</code>, as described below.</li>
-</ul>
-
-<p>FLAGS is a string consisting of one of more of the supported flags:</p>
-
-<ul>
-<li><code>g</code> - Global search (find all matches, not just the first)</li>
-
-<li><code>i</code> - Case insensitive search</li>
-
-<li><code>m</code> - Multi line mode (‘.’ will match newlines)</li>
-
-<li><code>n</code> - Ignore empty matches</li>
-
-<li><code>p</code> - Both s and m modes are enabled</li>
-
-<li><code>s</code> - Single line mode (‘^’ -&gt; ‘\A’, ‘$’ -&gt; ‘\Z’)</li>
-
-<li><code>l</code> - Find longest possible matches</li>
-
-<li><code>x</code> - Extended regex format (ignore whitespace and comments)</li>
-</ul>
-
-<p>To match whitespace in an x pattern use an escape such as \s, e.g.</p>
-
-<ul>
-<li>test( “a\sb”, “x” ).</li>
-</ul>
-
-<p>Note that certain flags may also be specified within REGEX, e.g.</p>
-
-<ul>
-<li>jq -n ‘(“test”, “TEst”, “teST”, “TEST”) | test( “(?i)te(?-i)st” )’</li>
-</ul>
-
-<p>evaluates to: true, true, false, false.</p>
-
-
-                <section id="test(val),test(regex;flags)">
-                  <h3>
-
-<code>test(val)</code>, <code>test(regex; flags)</code>
-
-
-                  </h3>
-
-<p>Like <code>match</code>, but does not return match objects, only <code>true</code> or <code>false</code> for whether or not the regex matches the input.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example73">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example73" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'test(&quot;foo&quot;)'</td></tr>
-                            <tr><th>Input</th><td>&quot;foo&quot;</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>true</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[] | test(&quot;a b c # spaces are ignored&quot;; &quot;ix&quot;)'</td></tr>
-                            <tr><th>Input</th><td>[&quot;xabcd&quot;, &quot;ABC&quot;]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>true</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>true</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="match(val),match(regex;flags)">
-                  <h3>
-
-<code>match(val)</code>, <code>match(regex; flags)</code>
-
-
-                  </h3>
-
-<p><strong>match</strong> outputs an object for each match it finds. Matches have the following fields:</p>
-
-<ul>
-<li><code>offset</code> - offset in UTF-8 codepoints from the beginning of the input</li>
-
-<li><code>length</code> - length in UTF-8 codepoints of the match</li>
-
-<li><code>string</code> - the string that it matched</li>
-
-<li><code>captures</code> - an array of objects representing capturing groups.</li>
-</ul>
-
-<p>Capturing group objects have the following fields:</p>
-
-<ul>
-<li><code>offset</code> - offset in UTF-8 codepoints from the beginning of the input</li>
-
-<li><code>length</code> - length in UTF-8 codepoints of this capturing group</li>
-
-<li><code>string</code> - the string that was captured</li>
-
-<li><code>name</code> - the name of the capturing group (or <code>null</code> if it was unnamed)</li>
-</ul>
-
-<p>Capturing groups that did not match anything return an offset of -1</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example74">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example74" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'match(&quot;(abc)+&quot;; &quot;g&quot;)'</td></tr>
-                            <tr><th>Input</th><td>&quot;abc abc&quot;</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>{&quot;offset&quot;: 0, &quot;length&quot;: 3, &quot;string&quot;: &quot;abc&quot;, &quot;captures&quot;: [{&quot;offset&quot;: 0, &quot;length&quot;: 3, &quot;string&quot;: &quot;abc&quot;, &quot;name&quot;: null}]}</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>{&quot;offset&quot;: 4, &quot;length&quot;: 3, &quot;string&quot;: &quot;abc&quot;, &quot;captures&quot;: [{&quot;offset&quot;: 4, &quot;length&quot;: 3, &quot;string&quot;: &quot;abc&quot;, &quot;name&quot;: null}]}</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'match(&qquot;foo&quot;)'</td></tr>
-                            <tr><th>Input</th><td>&quot;foo bar foo&quot;</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>{&quot;offset&quot;: 0, &quot;length&quot;: 3, &quot;string&quot;: &quot;foo&quot;, &quot;captures&quot;: []}</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'match([&quot;foo&quot;, &quot;ig&quot;])'</td></tr>
-                            <tr><th>Input</th><td>&quot;foo bar FOO&quot;</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>{&quot;offset&quot;: 0, &quot;length&quot;: 3, &quot;string&quot;: &quot;foo&quot;, &quot;captures&quot;: []}</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>{&quot;offset&quot;: 8, &quot;length&quot;: 3, &quot;string&quot;: &quot;FOO&quot;, &quot;captures&quot;: []}</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'match(&quot;foo (?&lt;bar123&gt;bar)? foo&quot;; &quot;ig&quot;)'</td></tr>
-                            <tr><th>Input</th><td>&quot;foo bar foo foo  foo&quot;</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>{&quot;offset&quot;: 0, &quot;length&quot;: 11, &quot;string&quot;: &quot;foo bar foo&quot;, &quot;captures&quot;: [{&quot;offset&quot;: 4, &quot;length&quot;: 3, &quot;string&quot;: &quot;bar&quot;, &quot;name&quot;: &quot;bar123&quot;}]}</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>{&quot;offset&quot;: 12, &quot;length&quot;: 8, &quot;string&quot;: &quot;foo  foo&quot;, &quot;captures&quot;: [{&quot;offset&quot;: -1, &quot;length&quot;: 0, &quot;string&quot;: null, &quot;name&quot;: &quot;bar123&quot;}]}</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[ match(&quot;.&quot;; &quot;g&quot;)] | length'</td></tr>
-                            <tr><th>Input</th><td>&quot;abc&quot;</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>3</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="capture(val),capture(regex;flags)">
-                  <h3>
-
-<code>capture(val)</code>, <code>capture(regex; flags)</code>
-
-
-                  </h3>
-
-<p>Collects the named captures in a JSON object, with the name of each capture as the key, and the matched string as the corresponding value.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example75">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example75" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'capture(&quot;(?&lt;a&gt;[a-z]+)-(?&lt;n&gt;[0-9]+)&quot;)'</td></tr>
-                            <tr><th>Input</th><td>&quot;xyzzy-14&quot;</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>{ &quot;a&quot;: &quot;xyzzy&quot;, &quot;n&quot;: &quot;14&quot; }</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="scan(regex),scan(regex;flags)">
-                  <h3>
-
-<code>scan(regex)</code>, <code>scan(regex; flags)</code>
-
-
-                  </h3>
-
-<p>Emit a stream of the non-overlapping substrings of the input that match the regex in accordance with the flags, if any have been specified. If there is no match, the stream is empty. To capture all the matches for each input string, use the idiom <code>[ expr ]</code>, e.g. <code>[ scan(regex) ]</code>.</p>
-
-
-
-                </section>
-
-                <section id="split(regex;flags)">
-                  <h3>
-
-<code>split(regex; flags)</code>
-
-
-                  </h3>
-
-<p>For backwards compatibility, <code>split</code> splits on a string, not a regex.</p>
-
-
-
-                </section>
-
-                <section id="splits(regex),splits(regex;flags)">
-                  <h3>
-
-<code>splits(regex)</code>, <code>splits(regex; flags)</code>
-
-
-                  </h3>
-
-<p>These provide the same results as their <code>split</code> counterparts, but as a stream instead of an array.</p>
-
-
-
-                </section>
-
-                <section id="sub(regex;tostring)sub(regex;string;flags)">
-                  <h3>
-
-<code>sub(regex; tostring)</code> <code>sub(regex; string; flags)</code>
-
-
-                  </h3>
-
-<p>Emit the string obtained by replacing the first match of regex in the input string with <code>tostring</code>, after interpolation. <code>tostring</code> should be a jq string, and may contain references to named captures. The named captures are, in effect, presented as a JSON object (as constructed by <code>capture</code>) to <code>tostring</code>, so a reference to a captured variable named “x” would take the form: “(.x)”.</p>
-
-
-
-                </section>
-
-                <section id="gsub(regex;string),gsub(regex;string;flags)">
-                  <h3>
-
-<code>gsub(regex; string)</code>, <code>gsub(regex; string; flags)</code>
-
-
-                  </h3>
-
-<p><code>gsub</code> is like <code>sub</code> but all the non-overlapping occurrences of the regex are replaced by the string, after interpolation.</p>
-
-
-
-                </section>
-
-            </section>
-
-            <section id="Advancedfeatures">
-              <h2>Advanced features</h2>
-
-<p>Variables are an absolute necessity in most programming languages, but they’re relegated to an “advanced feature” in jq.</p>
-
-<p>In most languages, variables are the only means of passing around data. If you calculate a value, and you want to use it more than once, you’ll need to store it in a variable. To pass a value to another part of the program, you’ll need that part of the program to define a variable (as a function parameter, object member, or whatever) in which to place the data.</p>
-
-<p>It is also possible to define functions in jq, although this is is a feature whose biggest use is defining jq’s standard library (many jq functions such as <code>map</code> and <code>find</code> are in fact written in jq).</p>
-
-<p>jq has reduction operators, which are very powerful but a bit tricky. Again, these are mostly used internally, to define some useful bits of jq’s standard library.</p>
-
-<p>It may not be obvious at first, but jq is all about generators (yes, as often found in other languages). Some utilities are provided to help deal with generators.</p>
-
-<p>Some minimal I/O support (besides reading JSON from standard input, and writing JSON to standard output) is available.</p>
-
-<p>Finally, there is a module/library system.</p>
-
-
-                <section id="Variables">
-                  <h3>
-
-Variables
-
-
-                  </h3>
-
-<p>In jq, all filters have an input and an output, so manual plumbing is not necessary to pass a value from one part of a program to the next. Many expressions, for instance <code>a + b</code>, pass their input to two distinct subexpressions (here <code>a</code> and <code>b</code> are both passed the same input), so variables aren’t usually necessary in order to use a value twice.</p>
-
-<p>For instance, calculating the average value of an array of numbers requires a few variables in most languages - at least one to hold the array, perhaps one for each element or for a loop counter. In jq, it’s simply <code>add / length</code> - the <code>add</code> expression is given the array and produces its sum, and the <code>length</code> expression is given the array and produces its length.</p>
-
-<p>So, there’s generally a cleaner way to solve most problems in jq than defining variables. Still, sometimes they do make things easier, so jq lets you define variables using <code>expression as $variable</code>. All variable names start with <code>$</code>. Here’s a slightly uglier version of the array-averaging example:</p>
-
-<pre><code>length as $array_length | add / $array_length</code></pre>
-
-<p>We’ll need a more complicated problem to find a situation where using variables actually makes our lives easier.</p>
-
-<p>Suppose we have an array of blog posts, with “author” and “title” fields, and another object which is used to map author usernames to real names. Our input looks like:</p>
-
-<pre><code>{&quot;posts&quot;: [{&quot;title&quot;: &quot;Frist psot&quot;, &quot;author&quot;: &quot;anon&quot;},
-           {&quot;title&quot;: &quot;A well-written article&quot;, &quot;author&quot;: &quot;person1&quot;}],
- &quot;realnames&quot;: {&quot;anon&quot;: &quot;Anonymous Coward&quot;,
-               &quot;person1&quot;: &quot;Person McPherson&quot;}}</code></pre>
-
-<p>We want to produce the posts with the author field containing a real name, as in:</p>
-
-<pre><code>{&quot;title&quot;: &quot;Frist psot&quot;, &quot;author&quot;: &quot;Anonymous Coward&quot;}
-{&quot;title&quot;: &quot;A well-written article&quot;, &quot;author&quot;: &quot;Person McPherson&quot;}</code></pre>
-
-<p>We use a variable, $names, to store the realnames object, so that we can refer to it later when looking up author usernames:</p>
-
-<pre><code>.realnames as $names | .posts[] | {title, author: $names[.author]}</code></pre>
-
-<p>The expression <code>exp as $x | ...</code> means: for each value of expression <code>exp</code>, run the rest of the pipeline with the entire original input, and with <code>$x</code> set to that value. Thus <code>as</code> functions as something of a foreach loop.</p>
-
-<p>Just as <code>{foo}</code> is a handy way of writing <code>{foo: .foo}</code>, so <code>{$foo}</code> is a handy way of writing <code>{foo:$foo}</code>.</p>
-
-<p>Multiple variables may be declared using a single <code>as</code> expression by providing a pattern that matches the structure of the input (this is known as “destructuring”):</p>
-
-<pre><code>. as {realnames: $names, posts: [$first, $second]} | ...</code></pre>
-
-<p>The variable declarations in array patterns (e.g., <code>. as
-[$first, $second]</code>) bind to the elements of the array in from the element at index zero on up, in order. When there is no value at the index for an array pattern element, <code>null</code> is bound to that variable.</p>
-
-<p>Variables are scoped over the rest of the expression that defines them, so</p>
-
-<pre><code>.realnames as $names | (.posts[] | {title, author: $names[.author]})</code></pre>
-
-<p>will work, but</p>
-
-<pre><code>(.realnames as $names | .posts[]) | {title, author: $names[.author]}</code></pre>
-
-<p>won’t.</p>
-
-<p>For programming language theorists, it’s more accurate to say that jq variables are lexically-scoped bindings. In particular there’s no way to change the value of a binding; one can only setup a new binding with the same name, but which will not be visible where the old one was.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example76">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example76" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.bar as $x | .foo | . + $x'</td></tr>
-                            <tr><th>Input</th><td>{&quot;foo&quot;:10, &quot;bar&quot;:200}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>210</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '. as $i|[(.*2|. as $i| $i), $i]'</td></tr>
-                            <tr><th>Input</th><td>5</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[10,5]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '. as [$a, $b, {c: $c}] | $a + $b + $c'</td></tr>
-                            <tr><th>Input</th><td>[2, 3, {&quot;c&quot;: 4, &quot;d&quot;: 5}]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>9</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.[] as [$a, $b] | {a: $a, b: $b}'</td></tr>
-                            <tr><th>Input</th><td>[[0], [0, 1], [2, 1, 0]]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>{&quot;a&quot;:0,&quot;b&quot;:null}</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>{&quot;a&quot;:0,&quot;b&quot;:1}</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>{&quot;a&quot;:2,&quot;b&quot;:1}</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="DefiningFunctions">
-                  <h3>
-
-Defining Functions
-
-
-                  </h3>
-
-<p>You can give a filter a name using “def” syntax:</p>
-
-<pre><code>def increment: . + 1;</code></pre>
-
-<p>From then on, <code>increment</code> is usable as a filter just like a builtin function (in fact, this is how some of the builtins are defined). A function may take arguments:</p>
-
-<pre><code>def map(f): [.[] | f];</code></pre>
-
-<p>Arguments are passed as filters, not as values. The same argument may be referenced multiple times with different inputs (here <code>f</code> is run for each element of the input array). Arguments to a function work more like callbacks than like value arguments. This is important to understand. Consider:</p>
-
-<pre><code>def foo(f): f|f;
-5|foo(.*2)</code></pre>
-
-<p>The result will be 20 because <code>f</code> is <code>.*2</code>, and during the first invocation of <code>f</code> <code>.</code> will be 5, and the second time it will be 10 (5 * 2), so the result will be 20. Function arguments are filters, and filters expect an input when invoked.</p>
-
-<p>If you want the value-argument behaviour for defining simple functions, you can just use a variable:</p>
-
-<pre><code>def addvalue(f): f as $f | map(. + $f);</code></pre>
-
-<p>Or use the short-hand:</p>
-
-<pre><code>def addvalue($f): ...;</code></pre>
-
-<p>With either definition, <code>addvalue(.foo)</code> will add the current input’s <code>.foo</code> field to each element of the array.</p>
-
-<p>Multiple definitions using the same function name are allowed. Each re-definition replaces the previous one for the same number of function arguments, but only for references from functions (or main program) subsequent to the re-definition.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example77">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example77" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'def addvalue(f): . + [f]; map(addvalue(.[0]))'</td></tr>
-                            <tr><th>Input</th><td>[[1,2],[10,20]]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[[1,2,1], [10,20,10]]</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'def addvalue(f): f as $x | map(. + $x); addvalue(.[0])'</td></tr>
-                            <tr><th>Input</th><td>[[1,2],[10,20]]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[[1,2,1,2], [10,20,1,2]]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="Reduce">
-                  <h3>
-
-Reduce
-
-
-                  </h3>
-
-<p>The <code>reduce</code> syntax in jq allows you to combine all of the results of an expression by accumulating them into a single answer. As an example, we’ll pass <code>[3,2,1]</code> to this expression:</p>
-
-<pre><code>reduce .[] as $item (0; . + $item)</code></pre>
-
-<p>For each result that <code>.[]</code> produces, <code>. + $item</code> is run to accumulate a running total, starting from 0. In this example, <code>.[]</code> produces the results 3, 2, and 1, so the effect is similar to running something like this:</p>
-
-<pre><code>0 | (3 as $item | . + $item) |
-    (2 as $item | . + $item) |
-    (1 as $item | . + $item)</code></pre>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example78">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example78" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'reduce .[] as $item (0; . + $item)'</td></tr>
-                            <tr><th>Input</th><td>[10,2,5,3]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>20</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="limit(n;exp)">
-                  <h3>
-
-<code>limit(n; exp)</code>
-
-
-                  </h3>
-
-<p>The <code>limit</code> function extracts up to <code>n</code> outputs from <code>exp</code>.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example79">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example79" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[limit(3;.[])]'</td></tr>
-                            <tr><th>Input</th><td>[0,1,2,3,4,5,6,7,8,9]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[0,1,2]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="first(expr),last(expr),nth(n;expr)">
-                  <h3>
-
-<code>first(expr)</code>, <code>last(expr)</code>, <code>nth(n; expr)</code>
-
-
-                  </h3>
-
-<p>The <code>first(expr)</code> and <code>last(expr)</code> functions extract the first and last values from <code>expr</code>, respectively.</p>
-
-<p>The <code>nth(n; expr)</code> function extracts the nth value output by <code>expr</code>. This can be defined as <code>def nth(n; expr):
-last(limit(n + 1; expr));</code>. Note that <code>nth(n; expr)</code> doesn’t support negative values of <code>n</code>.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example80">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example80" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[first(range(.)), last(range(.)), nth(./2; range(.))]'</td></tr>
-                            <tr><th>Input</th><td>10</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[0,9,5]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="first,last,nth(n)">
-                  <h3>
-
-<code>first</code>, <code>last</code>, <code>nth(n)</code>
-
-
-                  </h3>
-
-<p>The <code>first</code> and <code>last</code> functions extract the first and last values from any array at <code>.</code>.</p>
-
-<p>The <code>nth(n)</code> function extracts the nth value of any array at <code>.</code>.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example81">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example81" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[range(.)]|[first, last, nth(5)]'</td></tr>
-                            <tr><th>Input</th><td>10</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[0,9,5]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="foreach">
-                  <h3>
-
-<code>foreach</code>
-
-
-                  </h3>
-
-<p>The <code>foreach</code> syntax is similar to <code>reduce</code>, but intended to allow the construction of <code>limit</code> and reducers that produce intermediate results (see example).</p>
-
-<p>The form is <code>foreach EXP as $var (INIT; UPDATE; EXTRACT)</code>. Like <code>reduce</code>, <code>INIT</code> is evaluated once to produce a state value, then each output of <code>EXP</code> is bound to <code>$var</code>, <code>UPDATE</code> is evaluated for each output of <code>EXP</code> with the current state and with <code>$var</code> visible. Each value output by <code>UPDATE</code> replaces the previous state. Finally, <code>EXTRACT</code> is evaluated for each new state to extract an output of <code>foreach</code>.</p>
-
-<p>This is mostly useful only for constructing <code>reduce</code>- and <code>limit</code>-like functions. But it is much more general, as it allows for partial reductions (see the example below).</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example82">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example82" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[foreach .[] as $item ([[],[]]; if $item == null then [[],.[0]] else [(.[0] + [$item]),[]] end; if $item == null then .[1] else empty end)]'</td></tr>
-                            <tr><th>Input</th><td>[1,2,3,4,null,&quot;a&quot;,&quot;b&quot;,null]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[[1,2,3,4],[&quot;a&quot;,&quot;b&quot;]]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="Recursion">
-                  <h3>
-
-Recursion
-
-
-                  </h3>
-
-<p>As described above, <code>recurse</code> uses recursion, and any jq function can be recursive. The <code>while</code> builtin is also implemented in terms of recursion.</p>
-
-<p>Tail calls are optimized whenever the expression to the left of the recursive call outputs its last value. In practice this means that the expression to the left of the recursive call should not produce more than one output for each input.</p>
-
-<p>For example:</p>
-
-<pre><code>def recurse(f): def r: ., (f | select(. != null) | r); r;
-
-def while(cond; update):
-  def _while:
-    if cond then ., (update | _while) else empty end;
-  _while;
-
-def repeat(exp):
-  def _repeat:
-    exp, _repeat;
-  _repeat;</code></pre>
-
-
-
-                </section>
-
-                <section id="Generatorsanditerators">
-                  <h3>
-
-Generators and iterators
-
-
-                  </h3>
-
-<p>Some jq operators and functions are actually generators in that they can produce zero, one, or more values for each input, just as one might expect in other programming languages that have generators. For example, <code>.[]</code> generates all the values in its input (which must be an array or an object), <code>range(0; 10)</code> generates the integers between 0 and 10, and so on.</p>
-
-<p>Even the comma operator is a generator, generating first the values generated by the expression to the left of the comma, then for each of those, the values generate by the expression on the right of the comma.</p>
-
-<p>The <code>empty</code> builtin is the generator that produces zero outputs. The <code>empty</code> builtin backtracks to the preceding generator expression.</p>
-
-<p>All jq functions can be generators just by using builtin generators. It is also possible to define new generators using only recursion and the comma operator. If the recursive call(s) is(are) “in tail position” then the generator will be efficient. In the example below the recursive call by <code>_range</code> to itself is in tail position. The example shows off three advanced topics: tail recursion, generator construction, and sub-functions.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example83">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Examples
-                      </a>
-                      <div id="example83" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'def range(init; upto; by): def _range: if (by &gt; 0 and . &lt; upto) or (by &lt; 0 and . &gt; upto) then ., ((.+by)|_range) else . end; if by == 0 then init else init|_range end | select((by &gt; 0 and . &lt; upto) or (by &lt; 0 and . &gt; upto)); range(0; 10; 3)'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>0</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>3</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>6</td>
-                              </tr>
-
-                              <tr>
-
-                                  <th></th>
-
-                                <td>9</td>
-                              </tr>
-
-                          </table>
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'def while(cond; update): def _while: if cond then ., (update | _while) else empty end; _while; [while(.&lt;100; .*2)]'</td></tr>
-                            <tr><th>Input</th><td>1</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[1,2,4,8,16,32,64]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-            </section>
-
-            <section id="Math">
-              <h2>Math</h2>
-
-<p>jq currently only has IEEE754 double-precision (64-bit) floating point number support.</p>
-
-<p>Besides simple arithmetic operators such as <code>+</code>, jq also has most standard math functions from the C math library. C math functions that take a single input argument (e.g., <code>sin()</code>) are available as zero-argument jq functions. C math functions that take two input arguments (e.g., <code>pow()</code>) are available as two-argument jq functions that ignore <code>.</code>.</p>
-
-<p>Availability of standard math functions depends on the availability of the corresponding math functions in your operating system and C math library. Unavailable math functions will be defined but will raise an error.</p>
-
-
-            </section>
-
-            <section id="IO">
-              <h2>I/O</h2>
-
-<p>At this time jq has minimal support for I/O, mostly in the form of control over when inputs are read. Two builtins functions are provided for this, <code>input</code> and <code>inputs</code>, that read from the same sources (e.g., <code>stdin</code>, files named on the command-line) as jq itself. These two builtins, and jq’s own reading actions, can be interleaved with each other.</p>
-
-<p>One builtin provides minimal output capabilities, <code>debug</code>. (Recall that a jq program’s output values are always output as JSON texts on <code>stdout</code>.) The <code>debug</code> builtin can have application-specific behavior, such as for executables that use the libjq C API but aren’t the jq executable itself.</p>
-
-
-                <section id="input">
-                  <h3>
-
-<code>input</code>
-
-
-                  </h3>
-
-<p>Outputs one new input.</p>
-
-
-
-                </section>
-
-                <section id="inputs">
-                  <h3>
-
-<code>inputs</code>
-
-
-                  </h3>
-
-<p>Outputs all remaining inputs, one by one.</p>
-
-<p>This is primarily useful for reductions over a program’s inputs.</p>
-
-
-
-                </section>
-
-                <section id="debug">
-                  <h3>
-
-<code>debug</code>
-
-
-                  </h3>
-
-<p>Causes a debug message based on the input value to be produced. The jq executable wraps the input value with <code>[&quot;DEBUG:&quot;, &lt;input-value&gt;]</code> and prints that and a newline on stderr, compactly. This may change in the future.</p>
-
-
-
-                </section>
-
-                <section id="input_filename">
-                  <h3>
-
-<code>input_filename</code>
-
-
-                  </h3>
-
-<p>Returns the name of the file whose input is currently being filtered. Note that this will not work well unless jq is running in a UTF-8 locale.</p>
-
-
-
-                </section>
-
-                <section id="input_line_number">
-                  <h3>
-
-<code>input_line_number</code>
-
-
-                  </h3>
-
-<p>Returns the line number of the input currently being filtered.</p>
-
-
-
-                </section>
-
-            </section>
-
-            <section id="Streaming">
-              <h2>Streaming</h2>
-
-<p>With the <code>--stream</code> option jq can parse input texts in a streaming fashion, allowing jq programs to start processing large JSON texts immediately rather than after the parse completes. If you have a single JSON text that is 1GB in size, streaming it will allow you to process it much more quickly.</p>
-
-<p>However, streaming isn’t easy to deal with as the jq program will have <code>[&lt;path&gt;, &lt;leaf-value&gt;]</code> (and a few other forms) as inputs.</p>
-
-<p>Several builtins are provided to make handling streams easier.</p>
-
-<p>The examples below use the streamed form of <code>[0,[1]]</code>, which is <code>[[0],0],[[1,0],1],[[1,0]],[[1]]</code>.</p>
-
-<p>Streaming forms include <code>[&lt;path&gt;, &lt;leaf-value&gt;]</code> (to indicate any scalar value, empty array, or empty object), and <code>[&lt;path&gt;]</code> (to indicate the end of an array or object). Future versions of jq run with <code>--stream</code> and <code>-seq</code> may output additional forms such as <code>[&quot;error message&quot;]</code> when an input text fails to parse.</p>
-
-
-                <section id="truncate_stream(stream_expression)">
-                  <h3>
-
-<code>truncate_stream(stream_expression)</code>
-
-
-                  </h3>
-
-<p>Consumes a number as input and truncates the corresponding number of path elements from the left of the outputs of the given streaming expression.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example84">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example84" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '[1|truncate_stream([[0],1],[[1,0],2],[[1,0]],[[1]])]'</td></tr>
-                            <tr><th>Input</th><td>1</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[[[0],2],[[0]]]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="fromstream(stream_expression)">
-                  <h3>
-
-<code>fromstream(stream_expression)</code>
-
-
-                  </h3>
-
-<p>Outputs values corresponding to the stream expression’s outputs.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example85">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example85" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq 'fromstream(1|truncate_stream([[0],1],[[1,0],2],[[1,0]],[[1]]))'</td></tr>
-                            <tr><th>Input</th><td>null</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[2]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="tostream">
-                  <h3>
-
-<code>tostream</code>
-
-
-                  </h3>
-
-<p>The <code>tostream</code> builtin outputs the streamed form of its input.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example86">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example86" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '. as $dot|fromstream($dot|tostream)|.==$dot'</td></tr>
-                            <tr><th>Input</th><td>[0,[1,{&quot;a&quot;:1},{&quot;b&quot;:2}]]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>true</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-            </section>
-
-            <section id="Assignment">
-              <h2>Assignment</h2>
-
-<p>Assignment works a little differently in jq than in most programming languages. jq doesn’t distinguish between references to and copies of something - two objects or arrays are either equal or not equal, without any further notion of being “the same object” or “not the same object”.</p>
-
-<p>If an object has two fields which are arrays, <code>.foo</code> and <code>.bar</code>, and you append something to <code>.foo</code>, then <code>.bar</code> will not get bigger. Even if you’ve just set <code>.bar = .foo</code>. If you’re used to programming in languages like Python, Java, Ruby, Javascript, etc. then you can think of it as though jq does a full deep copy of every object before it does the assignment (for performance, it doesn’t actually do that, but that’s the general idea).</p>
-
-<p>All the assignment operators in jq have path expressions on the left-hand side.</p>
-
-
-                <section id="=">
-                  <h3>
-
-<code>=</code>
-
-
-                  </h3>
-
-<p>The filter <code>.foo = 1</code> will take as input an object and produce as output an object with the “foo” field set to 1. There is no notion of “modifying” or “changing” something in jq - all jq values are immutable. For instance,</p>
-
-<p>.foo = .bar | .foo.baz = 1</p>
-
-<p>will not have the side-effect of setting .bar.baz to be set to 1, as the similar-looking program in Javascript, Python, Ruby or other languages would. Unlike these languages (but like Haskell and some other functional languages), there is no notion of two arrays or objects being “the same array” or “the same object”. They can be equal, or not equal, but if we change one of them in no circumstances will the other change behind our backs.</p>
-
-<p>This means that it’s impossible to build circular values in jq (such as an array whose first element is itself). This is quite intentional, and ensures that anything a jq program can produce can be represented in JSON.</p>
-
-<p>Note that the left-hand side of ‘=’ refers to a value in <code>.</code>. Thus <code>$var.foo = 1</code> won’t work as expected (<code>$var.foo</code> is not a valid or useful path expression in <code>.</code>); use <code>$var | .foo =
-1</code> instead.</p>
-
-<p>If the right-hand side of ‘=’ produces multiple values, then for each such value jq will set the paths on the left-hand side to the value and then it will output the modified <code>.</code>. For example, <code>(.a,.b)=range(2)</code> outputs <code>{&quot;a&quot;:0,&quot;b&quot;:0}</code>, then <code>{&quot;a&quot;:1,&quot;b&quot;:1}</code>. The “update” assignment forms (see below) do not do this.</p>
-
-<p>Note too that <code>.a,.b=0</code> does not set <code>.a</code> and <code>.b</code>, but <code>(.a,.b)=0</code> sets both.</p>
-
-
-
-                </section>
-
-                <section id="|=">
-                  <h3>
-
-<code>|=</code>
-
-
-                  </h3>
-
-<p>As well as the assignment operator ‘=’, jq provides the “update” operator ‘|=’, which takes a filter on the right-hand side and works out the new value for the property of <code>.</code> being assigned to by running the old value through this expression. For instance, .foo |= .+1 will build an object with the “foo” field set to the input’s “foo” plus 1.</p>
-
-<p>This example should show the difference between ‘=’ and ‘|=’:</p>
-
-<p>Provide input ‘{“a”: {“b”: 10}, “b”: 20}’ to the programs:</p>
-
-<p>.a = .b .a |= .b</p>
-
-<p>The former will set the “a” field of the input to the “b” field of the input, and produce the output {“a”: 20}. The latter will set the “a” field of the input to the “a” field’s “b” field, producing {“a”: 10}.</p>
-
-<p>The left-hand side can be any general path expression; see <code>path()</code>.</p>
-
-<p>Note that the left-hand side of ‘|=’ refers to a value in <code>.</code>. Thus <code>$var.foo |= . + 1</code> won’t work as expected (<code>$var.foo</code> is not a valid or useful path expression in <code>.</code>); use <code>$var |
-.foo |= . + 1</code> instead.</p>
-
-<p>If the right-hand side outputs multiple values, only the last one will be used.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example87">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example87" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '(..|select(type==&quot;boolean&quot;)) |= if . then 1 else 0 end'</td></tr>
-                            <tr><th>Input</th><td>[true,false,[5,true,[true,[false]],false]]</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>[1,0,[5,1,[1,[0]],0]]</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="+=,-=,*=,/=,%=,//=">
-                  <h3>
-
-<code>+=</code>, <code>-=</code>, <code>*=</code>, <code>/=</code>, <code>%=</code>, <code>//=</code>
-
-
-                  </h3>
-
-<p>jq has a few operators of the form <code>a op= b</code>, which are all equivalent to <code>a |= . op b</code>. So, <code>+= 1</code> can be used to increment values.</p>
-
-
-
-                    <div>
-
-                      <a data-toggle="collapse" href="#example88">
-                        <i class="glyphicon glyphicon-chevron-right"></i>
-                        Example
-                      </a>
-                      <div id="example88" class="manual-example collapse">
-
-                          <table>
-                            <tr><th></th><td class="jqprogram">jq '.foo += 1'</td></tr>
-                            <tr><th>Input</th><td>{&quot;foo&quot;: 42}</td></tr>
-
-
-                              <tr>
-
-                                  <th>Output</th>
-
-                                <td>{&quot;foo&quot;: 43}</td>
-                              </tr>
-
-                          </table>
-
-                      </div>
-                    </div>
-
-                </section>
-
-                <section id="Complexassignments">
-                  <h3>
-
-Complex assignments
-
-
-                  </h3>
-
-<p>Lots more things are allowed on the left-hand side of a jq assignment than in most languages. We’ve already seen simple field accesses on the left hand side, and it’s no surprise that array accesses work just as well:</p>
-
-<pre><code>.posts[0].title = &quot;JQ Manual&quot;</code></pre>
-
-<p>What may come as a surprise is that the expression on the left may produce multiple results, referring to different points in the input document:</p>
-
-<pre><code>.posts[].comments |= . + [&quot;this is great&quot;]</code></pre>
-
-<p>That example appends the string “this is great” to the “comments” array of each post in the input (where the input is an object with a field “posts” which is an array of posts).</p>
-
-<p>When jq encounters an assignment like ‘a = b’, it records the “path” taken to select a part of the input document while executing a. This path is then used to find which part of the input to change while executing the assignment. Any filter may be used on the left-hand side of an equals - whichever paths it selects from the input will be where the assignment is performed.</p>
-
-<p>This is a very powerful operation. Suppose we wanted to add a comment to blog posts, using the same “blog” input above. This time, we only want to comment on the posts written by “stedolan”. We can find those posts using the “select” function described earlier:</p>
-
-<pre><code>.posts[] | select(.author == &quot;stedolan&quot;)</code></pre>
-
-<p>The paths provided by this operation point to each of the posts that “stedolan” wrote, and we can comment on each of them in the same way that we did before:</p>
-
-<pre><code>(.posts[] | select(.author == &quot;stedolan&quot;) | .comments) |=
-    . + [&quot;terrible.&quot;]</code></pre>
-
-
-
-                </section>
-
-            </section>
-
-            <section id="Modules">
-              <h2>Modules</h2>
-
-<p>jq has a library/module system. Modules are files whose names end in <code>.jq</code>.</p>
-
-<p>Modules imported by a program are searched for in a default search path (see below). The <code>import</code> and <code>include</code> directives allow the importer to alter this path.</p>
-
-<p>Paths in the a search path are subject to various substitutions.</p>
-
-<p>For paths starting with “~/”, the user’s home directory is substituted for “~”.</p>
-
-<p>For paths starting with “$ORIGIN/”, the path of the jq executable is substituted for “$ORIGIN”.</p>
-
-<p>For paths starting with “./” or paths that are “.”, the path of the including file is substituted for “.”. For top-level programs given on the command-line, the current directory is used.</p>
-
-<p>Import directives can optionally specify a search path to which the default is appended.</p>
-
-<p>The default search path is the search path given to the <code>-L</code> command-line option, else <code>[&quot;~/.jq&quot;, &quot;$ORIGIN/../lib/jq&quot;,
-&quot;$ORIGIN/../lib&quot;]</code>.</p>
-
-<p>Null and empty string path elements terminate search path processing.</p>
-
-<p>A dependency with relative path “foo/bar” would be searched for in “foo/bar.jq” and “foo/bar/bar.jq” in the given search path. This is intended to allow modules to be placed in a directory along with, for example, version control files, README files, and so on, but also to allow for single-file modules.</p>
-
-<p>Consecutive components with the same name are not allowed to avoid ambiguities (e.g., “foo/foo”).</p>
-
-<p>For example, with <code>-L$HOME/.jq</code> a module <code>foo</code> can be found in <code>$HOME/.jq/foo.jq</code> and <code>$HOME/.jq/foo/foo.jq</code>.</p>
-
-<p>If “$HOME/.jq” is a file, it is sourced into the main program.</p>
-
-
-                <section id="importRelativePathStringasNAME[<metadata>];">
-                  <h3>
-
-<code>import RelativePathString as NAME [&lt;metadata&gt;];</code>
-
-
-                  </h3>
-
-<p>Imports a module found at the given path relative to a directory in a search path. A “.jq” suffix will be added to the relative path string. The module’s symbols are prefixed with “NAME::”.</p>
-
-<p>The optional metadata must be a constant jq expression. It should be an object with keys like “homepage” and so on. At this time jq only uses the “search” key/value of the metadata. The metadata is also made available to users via the <code>modulemeta</code> builtin.</p>
-
-<p>The “search” key in the metadata, if present, should have a string or array value (array of strings); this is the search path to be prefixed to the top-level search path.</p>
-
-
-
-                </section>
-
-                <section id="includeRelativePathString[<metadata>];">
-                  <h3>
-
-<code>include RelativePathString [&lt;metadata&gt;];</code>
-
-
-                  </h3>
-
-<p>Imports a module found at the given path relative to a directory in a search path as if it were included in place. A “.jq” suffix will be added to the relative path string. The module’s symbols are imported into the caller’s namespace as if the module’s content had been included directly.</p>
-
-<p>The optional metadata must be a constant jq expression. It should be an object with keys like “homepage” and so on. At this time jq only uses the “search” key/value of the metadata. The metadata is also made available to users via the <code>modulemeta</code> builtin.</p>
-
-
-
-                </section>
-
-                <section id="importRelativePathStringas$NAME[<metadata>];">
-                  <h3>
-
-<code>import RelativePathString as $NAME [&lt;metadata&gt;];</code>
-
-
-                  </h3>
-
-<p>Imports a JSON file found at the given path relative to a directory in a search path. A “.json” suffix will be added to the relative path string. The file’s data will be available as <code>$NAME::NAME</code>.</p>
-
-<p>The optional metadata must be a constant jq expression. It should be an object with keys like “homepage” and so on. At this time jq only uses the “search” key/value of the metadata. The metadata is also made available to users via the <code>modulemeta</code> builtin.</p>
-
-<p>The “search” key in the metadata, if present, should have a string or array value (array of strings); this is the search path to be prefixed to the top-level search path.</p>
-
-
-
-                </section>
-
-                <section id="module<metadata>;">
-                  <h3>
-
-<code>module &lt;metadata&gt;;</code>
-
-
-                  </h3>
-
-<p>This directive is entirely optional. It’s not required for proper operation. It serves only the purpose of providing metadata that can be read with the <code>modulemeta</code> builtin.</p>
-
-<p>The metadata must be a constant jq expression. It should be an object with keys like “homepage”. At this time jq doesn’t use this metadata, but it is made available to users via the <code>modulemeta</code> builtin.</p>
-
-
-
-                </section>
-
-                <section id="modulemeta">
-                  <h3>
-
-<code>modulemeta</code>
-
-
-                  </h3>
-
-<p>Takes a module name as input and outputs the module’s metadata as an object, with the module’s imports (including metadata) as an array value for the “deps” key.</p>
-
-<p>Programs can use this to query a module’s metadata, which they could then use to, for example, search for, download, and install missing dependencies.</p>
-
-
-
-                </section>
-
-            </section>
-
-        </div>
-      </div>
-    </div>
+        examples:
+          - program: '4 - .a'
+            input: '{"a":3}'
+            output: ['1']
+          - program: . - ["xml", "yaml"]
+            input: '["xml", "yaml", "json"]'
+            output: ['["json"]']
+
+      - title: Multiplication, division, modulo - `*`, `/`, and `%`
+        body: |
+
+          These infix operators behave as expected when given two numbers.
+          Division by zero raises an error. `x % y` computes x modulo y.
+
+          Multiplying a string by a number produces the concatenation of
+          that string that many times. `"x" * 0` produces **null**.
+
+          Dividing a string by another splits the first using the second
+          as separators.
+
+          Multiplying two objects will merge them recursively: this works
+          like addition but if both objects contain a value for the
+          same key, and the values are objects, the two are merged with
+          the same strategy.
+
+        examples:
+          - program: '10 / . * 3'
+            input: 5
+            output: [6]
+          - program: '. / ", "'
+            input: '"a, b,c,d, e"'
+            output: ['["a","b,c,d","e"]']
+          - program: '{"k": {"a": 1, "b": 2}} * {"k": {"a": 0,"c": 3}}'
+            input: 'null'
+            output: ['{"k": {"a": 0, "b": 2, "c": 3}}']
+          - program: '.[] | (1 / .)?'
+            input: '[1,0,-1]'
+            output: ['1', '-1']
+
+
+      - title: "`length`"
+        body: |
+
+          The builtin function `length` gets the length of various
+          different types of value:
+
+          - The length of a **string** is the number of Unicode
+            codepoints it contains (which will be the same as its
+            JSON-encoded length in bytes if it's pure ASCII).
+
+          - The length of an **array** is the number of elements.
+
+          - The length of an **object** is the number of key-value pairs.
+
+          - The length of **null** is zero.
+
+        examples:
+          - program: '.[] | length'
+            input: '[[1,2], "string", {"a":2}, null]'
+            output: [2, 6, 1, 0]
+
+      - title: "`keys`, `keys_unsorted`"
+        body: |
+
+          The builtin function `keys`, when given an object, returns
+          its keys in an array.
+
+          The keys are sorted "alphabetically", by unicode codepoint
+          order. This is not an order that makes particular sense in
+          any particular language, but you can count on it being the
+          same for any two objects with the same set of keys,
+          regardless of locale settings.
+
+          When `keys` is given an array, it returns the valid indices
+          for that array: the integers from 0 to length-1.
+
+          The `keys_unsorted` function is just like `keys`, but if
+          the input is an object then the keys will not be sorted,
+          instead the keys will roughly be in insertion order.
+
+        examples:
+          - program: 'keys'
+            input: '{"abc": 1, "abcd": 2, "Foo": 3}'
+            output: ['["Foo", "abc", "abcd"]']
+          - program: 'keys'
+            input: '[42,3,35]'
+            output: ['[0,1,2]']
+
+      - title: "`has(key)`"
+        body: |
+
+          The builtin function `has` returns whether the input object
+          has the given key, or the input array has an element at the
+          given index.
+
+          `has($key)` has the same effect as checking whether `$key`
+          is a member of the array returned by `keys`, although `has`
+          will be faster.
+
+        examples:
+          - program: 'map(has("foo"))'
+            input: '[{"foo": 42}, {}]'
+            output: ['[true, false]']
+          - program: 'map(has(2))'
+            input: '[[0,1], ["a","b","c"]]'
+            output: ['[false, true]']
+
+      - title: "`in`"
+        body: |
+
+          The builtin function `in` returns whether or not the input key is in the
+          given object, or the input index corresponds to an element
+          in the given array. It is, essentially, an inversed version
+          of `has`.
+
+        examples:
+          - program: '.[] | in({"foo": 42})'
+            input: '["foo", "bar"]'
+            output: ['true', 'false']
+          - program: 'map(in([0,1]))'
+            input: '[2, 0]'
+            output: ['[false, true]']
+
+      - title: "`path(path_expression)`"
+        body: |
+
+          Outputs array representations of the given path expression
+          in `.`.  The outputs are arrays of strings (object keys)
+          and/or numbers (array indices).
+
+          Path expressions are jq expressions like `.a`, but also `.[]`.
+          There are two types of path expressions: ones that can match
+          exactly, and ones that cannot.  For example, `.a.b.c` is an
+          exact match path expression, while `.a[].b` is not.
+
+          `path(exact_path_expression)` will produce the array
+          representation of the path expression even if it does not
+          exist in `.`, if `.` is `null` or an array or an object.
+
+          `path(pattern)` will produce array representations of the
+          paths matching `pattern` if the paths exist in `.`.
+
+          Note that the path expressions are not different from normal
+          expressions.  The expression
+          `path(..|select(type=="boolean"))` outputs all the paths to
+          boolean values in `.`, and only those paths.
+
+        examples:
+          - program: 'path(.a[0].b)'
+            input: 'null'
+            output: ['["a",0,"b"]']
+          - program: '[path(..)]'
+            input: '{"a":[{"b":1}]}'
+            output: ['[[],["a"],["a",0],["a",0,"b"]]']
+
+      - title: "`del(path_expression)`"
+        body: |
+
+          The builtin function `del` removes a key and its corresponding
+          value from an object.
+
+        examples:
+          - program: 'del(.foo)'
+            input: '{"foo": 42, "bar": 9001, "baz": 42}'
+            output: ['{"bar": 9001, "baz": 42}']
+          - program: 'del(.[1, 2])'
+            input: '["foo", "bar", "baz"]'
+            output: ['["foo"]']
+
+      - title: "`to_entries`, `from_entries`, `with_entries`"
+        body: |
+
+          These functions convert between an object and an array of
+          key-value pairs. If `to_entries` is passed an object, then
+          for each `k: v` entry in the input, the output array
+          includes `{"key": k, "value": v}`.
+
+          `from_entries` does the opposite conversion, and
+          `with_entries(foo)` is a shorthand for `to_entries |
+          map(foo) | from_entries`, useful for doing some operation to
+          all keys and values of an object. `from_entries` accepts key, Key,
+          Name, value and Value as keys.
+
+        examples:
+          - program: 'to_entries'
+            input: '{"a": 1, "b": 2}'
+            output: ['[{"key":"a", "value":1}, {"key":"b", "value":2}]']
+          - program: 'from_entries'
+            input: '[{"key":"a", "value":1}, {"key":"b", "value":2}]'
+            output: ['{"a": 1, "b": 2}']
+          - program: 'with_entries(.key |= "KEY_" + .)'
+            input: '{"a": 1, "b": 2}'
+            output: ['{"KEY_a": 1, "KEY_b": 2}']
+
+
+      - title: "`select(boolean_expression)`"
+        body: |
+
+          The function `select(foo)` produces its input unchanged if
+          `foo` returns true for that input, and produces no output
+          otherwise.
+
+          It's useful for filtering lists: `[1,2,3] | map(select(. >= 2))`
+          will give you `[2,3]`.
+
+        examples:
+          - program: 'map(select(. >= 2))'
+            input: '[1,5,3,0,7]'
+            output: ['[5,3,7]']
+          - program: '.[] | select(.id == "second")'
+            input: '[{"id": "first", "val": 1}, {"id": "second", "val": 2}]'
+            output: ['{"id": "second", "val": 2}']
+
+
+      - title: "`arrays`, `objects`, `iterables`, `booleans`, `numbers`, `normals`, `finites`, `strings`, `nulls`, `values`, `scalars`"
+        body: |
+
+          These built-ins select only inputs that are arrays, objects,
+          iterables (arrays or objects), booleans, numbers, normal
+          numbers, finite numbers, strings, null, non-null values, and
+          non-iterables, respectively.
+
+        examples:
+          - program: '.[]|numbers'
+            input: '[[],{},1,"foo",null,true,false]'
+            output: ['1']
+
+      - title: "`empty`"
+        body: |
+
+          `empty` returns no results. None at all. Not even `null`.
+
+          It's useful on occasion. You'll know if you need it :)
+
+        examples:
+          - program: '1, empty, 2'
+            input: 'null'
+            output: [1, 2]
+          - program: '[1,2,empty,3]'
+            input: 'null'
+            output: ['[1,2,3]']
+
+      - title: "`error(message)`"
+        body: |
+
+          Produces an error, just like `.a` applied to values other than
+          null and objects would, but with the given message as the
+          error's value.
+
+      - title: "`$__loc__`"
+        body: |
+
+          Produces an object with a "file" key and a "line" key, with
+          the filename and line number where `$__loc__` occurs, as
+          values.
+
+        examples:
+          - program: 'try error("\($__loc__)") catch .'
+            input: 'null'
+            output: ['"{\"file\":\"<top-level>\",\"line\":1}"']
+
+      - title: "`map(x)`, `map_values(x)`"
+        body: |
+
+          For any filter `x`, `map(x)` will run that filter for each
+          element of the input array, and return the outputs in a new
+          array. `map(.+1)` will increment each element of an array of numbers.
+
+          Similarly, `map_values(x)` will run that filter for each element,
+          but it will return an object when an object is passed.
+
+          `map(x)` is equivalent to `[.[] | x]`. In fact, this is how
+          it's defined. Similarly, `map_values(x)` is defined as `.[] |= x`.
+
+        examples:
+          - program: 'map(.+1)'
+            input: '[1,2,3]'
+            output: ['[2,3,4]']
+
+          - program: 'map_values(.+1)'
+            input: '{"a": 1, "b": 2, "c": 3}'
+            output: ['{"a": 2, "b": 3, "c": 4}']
+
+      - title: "`paths`, `paths(node_filter)`, `leaf_paths`"
+        body: |
+
+          `paths` outputs the paths to all the elements in its input
+          (except it does not output the empty list, representing .
+          itself).
+
+          `paths(f)` outputs the paths to any values for which `f` is true.
+          That is, `paths(numbers)` outputs the paths to all numeric
+          values.
+
+          `leaf_paths` is an alias of `paths(scalars)`; `leaf_paths` is
+          *deprecated* and will be removed in the next major release.
+
+        examples:
+          - program: '[paths]'
+            input: '[1,[[],{"a":2}]]'
+            output: ['[[0],[1],[1,0],[1,1],[1,1,"a"]]']
+          - program: '[paths(scalars)]'
+            input: '[1,[[],{"a":2}]]'
+            output: ['[[0],[1,1,"a"]]']
+
+      - title: "`add`"
+        body: |
+
+          The filter `add` takes as input an array, and produces as
+          output the elements of the array added together. This might
+          mean summed, concatenated or merged depending on the types
+          of the elements of the input array - the rules are the same
+          as those for the `+` operator (described above).
+
+          If the input is an empty array, `add` returns `null`.
+
+        examples:
+          - program: add
+            input: '["a","b","c"]'
+            output: ['"abc"']
+          - program: add
+            input: '[1, 2, 3]'
+            output: [6]
+          - program: add
+            input: '[]'
+            output: ["null"]
+
+      - title: "`any`, `any(condition)`, `any(generator; condition)`"
+        body: |
+
+          The filter `any` takes as input an array of boolean values,
+          and produces `true` as output if any of the elements of
+          the array are `true`.
+
+          If the input is an empty array, `any` returns `false`.
+
+          The `any(condition)` form applies the given condition to the
+          elements of the input array.
+
+          The `any(generator; condition)` form applies the given
+          condition to all the outputs of the given generator.
+
+        examples:
+          - program: any
+            input: '[true, false]'
+            output: ["true"]
+          - program: any
+            input: '[false, false]'
+            output: ["false"]
+          - program: any
+            input: '[]'
+            output: ["false"]
+
+      - title: "`all`, `all(condition)`, `all(generator; condition)`"
+        body: |
+
+          The filter `all` takes as input an array of boolean values,
+          and produces `true` as output if all of the elements of
+          the array are `true`.
+
+          The `all(condition)` form applies the given condition to the
+          elements of the input array.
+
+          The `all(generator; condition)` form applies the given
+          condition to all the outputs of the given generator.
+
+          If the input is an empty array, `all` returns `true`.
+
+        examples:
+          - program: all
+            input: '[true, false]'
+            output: ["false"]
+          - program: all
+            input: '[true, true]'
+            output: ["true"]
+          - program: all
+            input: '[]'
+            output: ["true"]
+
+      - title: "`flatten`, `flatten(depth)`"
+        body: |
+
+          The filter `flatten` takes as input an array of nested arrays,
+          and produces a flat array in which all arrays inside the original
+          array have been recursively replaced by their values. You can pass
+          an argument to it to specify how many levels of nesting to flatten.
+
+          `flatten(2)` is like `flatten`, but going only up to two
+          levels deep.
+
+        examples:
+          - program: flatten
+            input: '[1, [2], [[3]]]'
+            output: ["[1, 2, 3]"]
+          - program: flatten(1)
+            input: '[1, [2], [[3]]]'
+            output: ["[1, 2, [3]]"]
+          - program: flatten
+            input: '[[]]'
+            output: ["[]"]
+          - program: flatten
+            input: '[{"foo": "bar"}, [{"foo": "baz"}]]'
+            output: ['[{"foo": "bar"}, {"foo": "baz"}]']
+
+      - title: "`range(upto)`, `range(from;upto)` `range(from;upto;by)`"
+        body: |
+
+          The `range` function produces a range of numbers. `range(4;10)`
+          produces 6 numbers, from 4 (inclusive) to 10 (exclusive). The numbers
+          are produced as separate outputs. Use `[range(4;10)]` to get a range as
+          an array.
+
+          The one argument form generates numbers from 0 to the given
+          number, with an increment of 1.
+
+          The two argument form generates numbers from `from` to `upto`
+          with an increment of 1.
+
+          The three argument form generates numbers `from` to `upto`
+          with an increment of `by`.
+
+        examples:
+          - program: 'range(2;4)'
+            input: 'null'
+            output: ['2', '3']
+          - program: '[range(2;4)]'
+            input: 'null'
+            output: ['[2,3]']
+          - program: '[range(4)]'
+            input: 'null'
+            output: ['[0,1,2,3]']
+          - program: '[range(0;10;3)]'
+            input: 'null'
+            output: ['[0,3,6,9]']
+          - program: '[range(0;10;-1)]'
+            input: 'null'
+            output: ['[]']
+          - program: '[range(0;-5;-1)]'
+            input: 'null'
+            output: ['[0,-1,-2,-3,-4]']
+
+      - title: "`floor`"
+        body: |
+
+          The `floor` function returns the floor of its numeric input.
+
+        examples:
+          - program: 'floor'
+            input: '3.14159'
+            output: ['3']
+
+      - title: "`sqrt`"
+        body: |
+
+          The `sqrt` function returns the square root of its numeric input.
+
+        examples:
+          - program: 'sqrt'
+            input: '9'
+            output: ['3']
+
+      - title: "`tonumber`"
+        body: |
+
+          The `tonumber` function parses its input as a number. It
+          will convert correctly-formatted strings to their numeric
+          equivalent, leave numbers alone, and give an error on all other input.
+
+        examples:
+          - program: '.[] | tonumber'
+            input: '[1, "1"]'
+            output: [1, 1]
+
+      - title: "`tostring`"
+        body: |
+
+          The `tostring` function prints its input as a
+          string. Strings are left unchanged, and all other values are
+          JSON-encoded.
+
+        examples:
+          - program: '.[] | tostring'
+            input: '[1, "1", [1]]'
+            output: ['"1"', '"1"', '"[1]"']
+
+      - title: "`type`"
+        body: |
+
+          The `type` function returns the type of its argument as a
+          string, which is one of null, boolean, number, string, array
+          or object.
+
+        examples:
+          - program: 'map(type)'
+            input: '[0, false, [], {}, null, "hello"]'
+            output: ['["number", "boolean", "array", "object", "null", "string"]']
+
+      - title: "`infinite`, `nan`, `isinfinite`, `isnan`, `isfinite`, `isnormal`"
+        body: |
+
+          Some arithmetic operations can yield infinities and "not a
+          number" (NaN) values.  The `isinfinite` builtin returns `true`
+          if its input is infinite.  The `isnan` builtin returns `true`
+          if its input is a NaN.  The `infinite` builtin returns a
+          positive infinite value.  The `nan` builtin returns a NaN.
+          The `isnormal` builtin returns true if its input is a normal
+          number.
+
+          Note that division by zero raises an error.
+
+          Currently most arithmetic operations operating on infinities,
+          NaNs, and sub-normals do not raise errors.
+
+        examples:
+          - program: '.[] | (infinite * .) < 0'
+            input: '[-1, 1]'
+            output: ['true', 'false']
+          - program: 'infinite, nan | type'
+            input: 'null'
+            output: ['"number"', '"number"']
+
+      - title: "`sort, sort_by(path_expression)`"
+        body: |
+
+          The `sort` functions sorts its input, which must be an
+          array. Values are sorted in the following order:
+
+          * `null`
+          * `false`
+          * `true`
+          * numbers
+          * strings, in alphabetical order (by unicode codepoint value)
+          * arrays, in lexical order
+          * objects
+
+          The ordering for objects is a little complex: first they're
+          compared by comparing their sets of keys (as arrays in
+          sorted order), and if their keys are equal then the values
+          are compared key by key.
+
+          `sort` may be used to sort by a particular field of an
+          object, or by applying any jq filter.
+
+          `sort_by(foo)` compares two elements by comparing the result of
+          `foo` on each element.
+
+        examples:
+          - program: 'sort'
+            input: '[8,3,null,6]'
+            output: ['[null,3,6,8]']
+          - program: 'sort_by(.foo)'
+            input: '[{"foo":4, "bar":10}, {"foo":3, "bar":100}, {"foo":2, "bar":1}]'
+            output: ['[{"foo":2, "bar":1}, {"foo":3, "bar":100}, {"foo":4, "bar":10}]']
+
+      - title: "`group_by(path_expression)`"
+        body: |
+
+          `group_by(.foo)` takes as input an array, groups the
+          elements having the same `.foo` field into separate arrays,
+          and produces all of these arrays as elements of a larger
+          array, sorted by the value of the `.foo` field.
+
+          Any jq expression, not just a field access, may be used in
+          place of `.foo`. The sorting order is the same as described
+          in the `sort` function above.
+
+        examples:
+          - program: 'group_by(.foo)'
+            input: '[{"foo":1, "bar":10}, {"foo":3, "bar":100}, {"foo":1, "bar":1}]'
+            output: ['[[{"foo":1, "bar":10}, {"foo":1, "bar":1}], [{"foo":3, "bar":100}]]']
+
+      - title: "`min`, `max`, `min_by(path_exp)`, `max_by(path_exp)`"
+        body: |
+
+          Find the minimum or maximum element of the input array.
+
+          The `min_by(path_exp)` and `max_by(path_exp)` functions allow
+          you to specify a particular field or property to examine, e.g.
+          `min_by(.foo)` finds the object with the smallest `foo` field.
+
+        examples:
+          - program: 'min'
+            input: '[5,4,2,7]'
+            output: ['2']
+          - program: 'max_by(.foo)'
+            input: '[{"foo":1, "bar":14}, {"foo":2, "bar":3}]'
+            output: ['{"foo":2, "bar":3}']
+
+      - title: "`unique`, `unique_by(path_exp)`"
+        body: |
+
+          The `unique` function takes as input an array and produces
+          an array of the same elements, in sorted order, with
+          duplicates removed.
+
+          The `unique_by(path_exp)` function will keep only one element
+          for each value obtained by applying the argument. Think of it
+          as making an array by taking one element out of every group
+          produced by `group`.
+
+        examples:
+          - program: 'unique'
+            input: '[1,2,5,3,5,3,1,3]'
+            output: ['[1,2,3,5]']
+          - program: 'unique_by(.foo)'
+            input: '[{"foo": 1, "bar": 2}, {"foo": 1, "bar": 3}, {"foo": 4, "bar": 5}]'
+            output: ['[{"foo": 1, "bar": 2}, {"foo": 4, "bar": 5}]']
+          - program: 'unique_by(length)'
+            input: '["chunky", "bacon", "kitten", "cicada", "asparagus"]'
+            output: ['["bacon", "chunky", "asparagus"]']
+
+      - title: "`reverse`"
+        body: |
+
+          This function reverses an array.
+
+        examples:
+          - program: 'reverse'
+            input: '[1,2,3,4]'
+            output: ['[4,3,2,1]']
+
+      - title: "`contains(element)`"
+        body: |
+
+          The filter `contains(b)` will produce true if b is
+          completely contained within the input. A string B is
+          contained in a string A if B is a substring of A. An array B
+          is contained in an array A if all elements in B are
+          contained in any element in A. An object B is contained in
+          object A if all of the values in B are contained in the
+          value in A with the same key. All other types are assumed to
+          be contained in each other if they are equal.
+
+        examples:
+          - program: 'contains("bar")'
+            input: '"foobar"'
+            output: ['true']
+          - program: 'contains(["baz", "bar"])'
+            input: '["foobar", "foobaz", "blarp"]'
+            output: ['true']
+          - program: 'contains(["bazzzzz", "bar"])'
+            input: '["foobar", "foobaz", "blarp"]'
+            output: ['false']
+          - program: 'contains({foo: 12, bar: [{barp: 12}]})'
+            input: '{"foo": 12, "bar":[1,2,{"barp":12, "blip":13}]}'
+            output: ['true']
+          - program: 'contains({foo: 12, bar: [{barp: 15}]})'
+            input: '{"foo": 12, "bar":[1,2,{"barp":12, "blip":13}]}'
+            output: ['false']
+
+      - title: "`indices(s)`"
+        body: |
+
+          Outputs an array containing the indices in `.` where `s`
+          occurs.  The input may be an array, in which case if `s` is an
+          array then the indices output will be those where all elements
+          in `.` match those of `s`.
+
+        examples:
+          - program: 'indices(", ")'
+            input: '"a,b, cd, efg, hijk"'
+            output: ['[3,7,12]']
+          - program: 'indices(1)'
+            input: '[0,1,2,1,3,1,4]'
+            output: ['[1,3,5]']
+          - program: 'indices([1,2])'
+            input: '[0,1,2,3,1,4,2,5,1,2,6,7]'
+            output: ['[1,8]']
+
+      - title: "`index(s)`, `rindex(s)`"
+        body: |
+
+          Outputs the index of the first (`index`) or last (`rindex`)
+          occurrence of `s` in the input.
+
+        examples:
+          - program: 'index(", ")'
+            input: '"a,b, cd, efg, hijk"'
+            output: ['3']
+          - program: 'rindex(", ")'
+            input: '"a,b, cd, efg, hijk"'
+            output: ['12']
+
+      - title: "`inside`"
+        body: |
+
+          The filter `inside(b)` will produce true if the input is
+          completely contained within b. It is, essentially, an
+          inversed version of `contains`.
+
+        examples:
+          - program: 'inside("foobar")'
+            input: '"bar"'
+            output: ['true']
+          - program: 'inside(["foobar", "foobaz", "blarp"])'
+            input: '["baz", "bar"]'
+            output: ['true']
+          - program: 'inside(["foobar", "foobaz", "blarp"])'
+            input: '["bazzzzz", "bar"]'
+            output: ['false']
+          - program: 'inside({"foo": 12, "bar":[1,2,{"barp":12, "blip":13}]})'
+            input: '{"foo": 12, "bar": [{"barp": 12}]}'
+            output: ['true']
+          - program: 'inside({"foo": 12, "bar":[1,2,{"barp":12, "blip":13}]})'
+            input: '{"foo": 12, "bar": [{"barp": 15}]}'
+            output: ['false']
+
+      - title: "`startswith(str)`"
+        body: |
+
+          Outputs `true` if . starts with the given string argument.
+
+        examples:
+          - program: '[.[]|startswith("foo")]'
+            input: '["fo", "foo", "barfoo", "foobar", "barfoob"]'
+            output: ['[false, true, false, true, false]']
+
+      - title: "`endswith(str)`"
+        body: |
+
+          Outputs `true` if . ends with the given string argument.
+
+        examples:
+          - program: '[.[]|endswith("foo")]'
+            input: '["foobar", "barfoo"]'
+            output: ['[false, true]']
+
+      - title: "`combinations`, `combinations(n)`"
+        body: |
+
+          Outputs all combinations of the elements of the arrays in the
+          input array. If given an argument `n`, it outputs all combinations
+          of `n` repetitions of the input array.
+
+        examples:
+          - program: 'combinations'
+            input: '[[1,2], [3, 4]]'
+            output: ['[1, 3]', '[1, 4]', '[2, 3]', '[2, 4]']
+          - program: 'combinations(2)'
+            input: '[0, 1]'
+            output: ['[0, 0]', '[0, 1]', '[1, 0]', '[1, 1]']
+
+      - title: "`ltrimstr(str)`"
+        body: |
+
+          Outputs its input with the given prefix string removed, if it
+          starts with it.
+
+        examples:
+          - program: '[.[]|ltrimstr("foo")]'
+            input: '["fo", "foo", "barfoo", "foobar", "afoo"]'
+            output: ['["fo","","barfoo","bar","afoo"]']
+
+      - title: "`rtrimstr(str)`"
+        body: |
+
+          Outputs its input with the given suffix string removed, if it
+          ends with it.
+
+        examples:
+          - program: '[.[]|rtrimstr("foo")]'
+            input: '["fo", "foo", "barfoo", "foobar", "foob"]'
+            output: ['["fo","","bar","foobar","foob"]']
+
+      - title: "`explode`"
+        body: |
+
+          Converts an input string into an array of the string's
+          codepoint numbers.
+
+        examples:
+          - program: 'explode'
+            input: '"foobar"'
+            output: ['[102,111,111,98,97,114]']
+
+      - title: "`implode`"
+        body: |
+
+          The inverse of explode.
+
+        examples:
+          - program: 'implode'
+            input: '[65, 66, 67]'
+            output: ['"ABC"']
+
+      - title: "`split`"
+        body: |
+
+          Splits an input string on the separator argument.
+
+        examples:
+          - program: 'split(", ")'
+            input: '"a, b,c,d, e, "'
+            output: ['["a","b,c,d","e",""]']
+
+      - title: "`join(str)`"
+        body: |
+
+          Joins the array of elements given as input, using the
+          argument as separator. It is the inverse of `split`: that is,
+          running `split("foo") | join("foo")` over any input string
+          returns said input string.
+
+        examples:
+          - program: 'join(", ")'
+            input: '["a","b,c,d","e"]'
+            output: ['"a, b,c,d, e"']
+
+
+      - title: "`ascii_downcase`, `ascii_upcase`"
+        body: |
+
+          Emit a copy of the input string with its alphabetic characters (a-z and A-Z)
+          converted to the specified case.
+
+        example:
+          - program: 'ascii_upcase'
+            input: '"useful but not for é"'
+            output: '"USEFUL BUT NOT FOR é"'
+
+      - title: "`while(cond; update)`"
+        body: |
+
+          The `while(cond; update)` function allows you to repeatedly
+          apply an update to `.` until `cond` is false.
+
+          Note that `while(cond; update)` is internally defined as a
+          recursive jq function.  Recursive calls within `while` will
+          not consume additional memory if `update` produces at most one
+          output for each input.  See advanced topics below.
+
+        examples:
+          - program: '[while(.<100; .*2)]'
+            input: '1'
+            output: ['[1,2,4,8,16,32,64]']
+
+      - title: "`until(cond; next)`"
+        body: |
+
+          The `until(cond; next)` function allows you to repeatedly
+          apply the expression `next`, initially to `.` then to its own
+          output, until `cond` is true.  For example, this can be used
+          to implement a factorial function (see below).
+
+          Note that `until(cond; next)` is internally defined as a
+          recursive jq function.  Recursive calls within `until()` will
+          not consume additional memory if `next` produces at most one
+          output for each input.  See advanced topics below.
+
+        examples:
+          - program: '[.,1]|until(.[0] < 1; [.[0] - 1, .[1] * .[0]])|.[1]'
+            input: '4'
+            output: ['24']
+
+
+      - title: "`recurse(f)`, `recurse`, `recurse(f; condition)`, `recurse_down`"
+        body: |
+
+          The `recurse(f)` function allows you to search through a
+          recursive structure, and extract interesting data from all
+          levels. Suppose your input represents a filesystem:
+
+              {"name": "/", "children": [
+                {"name": "/bin", "children": [
+                  {"name": "/bin/ls", "children": []},
+                  {"name": "/bin/sh", "children": []}]},
+                {"name": "/home", "children": [
+                  {"name": "/home/stephen", "children": [
+                    {"name": "/home/stephen/jq", "children": []}]}]}]}
+
+          Now suppose you want to extract all of the filenames
+          present. You need to retrieve `.name`, `.children[].name`,
+          `.children[].children[].name`, and so on. You can do this
+          with:
+
+              recurse(.children[]) | .name
+
+          When called without an argument, `recurse` is equivalent to
+          `recurse(.[]?)`.
+
+          `recurse(f)` is identical to `recurse(f; . != null)` and can be
+          used without concerns about recursion depth.
+
+          `recurse(f; condition)` is a generator which begins by
+          emitting . and then emits in turn .|f, .|f|f, .|f|f|f, ...  so long
+          as the computed value satisfies the condition. For example,
+          to generate all the integers, at least in principle, one
+          could write `recurse(.+1; true)`.
+
+          For legacy reasons, `recurse_down` exists as an alias to
+          calling `recurse` without arguments. This alias is considered
+          *deprecated* and will be removed in the next major release.
+
+          The recursive calls in `recurse` will not consume additional
+          memory whenever `f` produces at most a single output for each
+          input.
+
+        examples:
+          - program: 'recurse(.foo[])'
+            input: '{"foo":[{"foo": []}, {"foo":[{"foo":[]}]}]}'
+            output:
+              - '{"foo":[{"foo":[]},{"foo":[{"foo":[]}]}]}'
+              - '{"foo":[]}'
+              - '{"foo":[{"foo":[]}]}'
+              - '{"foo":[]}'
+
+          - program: 'recurse'
+            input: '{"a":0,"b":[1]}'
+            output:
+              - '{"a":0,"b":[1]}'
+              - '0'
+              - '[1]'
+              - '1'
+
+          - program: 'recurse(. * .; . < 20)'
+            input: 2
+            output:
+                - 2
+                - 4
+                - 16
+
+      - title: "`..`"
+        body: |
+
+          Short-hand for `recurse` without arguments.  This is intended
+          to resemble the XPath `//` operator.  Note that `..a` does not
+          work; use `..|a` instead.  In the example below we use
+          `..|.a?` to find all the values of object keys "a" in any
+          object found "below" `.`.
+
+        examples:
+          - program: '..|.a?'
+            input: '[[{"a":1}]]'
+            output: ['1']
+
+      - title: "`env`"
+        body: |
+
+          Outputs an object representing jq's environment.
+
+        examples:
+          - program: 'env.PAGER'
+            input: 'null'
+            output: ['"less"']
+
+      - title: "`transpose`"
+        body: |
+
+          Transpose a possibly jagged matrix (an array of arrays).
+          Rows are padded with nulls so the result is always rectangular.
+
+        examples:
+          - program: 'transpose'
+            input: '[[1], [2,3]]'
+            output: ['[[1,2],[null,3]]']
+
+      - title: "`bsearch(x)`"
+        body: |
+
+          bsearch(x) conducts a binary search for x in the input
+          array.  If the input is sorted and contains x, then
+          bsearch(x) will return its index in the array; otherwise, if
+          the array is sorted, it will return (-1 - ix) where ix is an
+          insertion point such that the array would still be sorted
+          after the insertion of x at ix.  If the array is not sorted,
+          bsearch(x) will return an integer that is probably of no
+          interest.
+
+        examples:
+          - program: 'bsearch(0)'
+            input: '[0,1]'
+            output: ['0']
+          - program: 'bsearch(0)'
+            input: '[1,2,3]'
+            output: ['-1']
+          - program: 'bsearch(4) as $ix | if $ix < 0 then .[-(1+$ix)] = 4 else . end'
+            input: '[1,2,3]'
+            output: ['[1,2,3,4]']
+
+      - title: "String interpolation - `\\(foo)`"
+        body: |
+
+          Inside a string, you can put an expression inside parens
+          after a backslash. Whatever the expression returns will be
+          interpolated into the string.
+
+        examples:
+          - program: '"The input was \(.), which is one less than \(.+1)"'
+            input: '42'
+            output: ['"The input was 42, which is one less than 43"']
+
+      - title: "Convert to/from JSON"
+        body: |
+
+          The `tojson` and `fromjson` builtins dump values as JSON texts
+          or parse JSON texts into values, respectively.  The tojson
+          builtin differs from tostring in that tostring returns strings
+          unmodified, while tojson encodes strings as JSON strings.
+
+        examples:
+          - program: '[.[]|tostring]'
+            input: '[1, "foo", ["foo"]]'
+            output: ['["1","foo","[\"foo\"]"]']
+          - program: '[.[]|tojson]'
+            input: '[1, "foo", ["foo"]]'
+            output: ['["1","\"foo\"","[\"foo\"]"]']
+          - program: '[.[]|tojson|fromjson]'
+            input: '[1, "foo", ["foo"]]'
+            output: ['[1,"foo",["foo"]]']
+
+      - title: "Format strings and escaping"
+        body: |
+
+          The `@foo` syntax is used to format and escape strings,
+          which is useful for building URLs, documents in a language
+          like HTML or XML, and so forth. `@foo` can be used as a
+          filter on its own, the possible escapings are:
+
+          * `@text`:
+
+            Calls `tostring`, see that function for details.
+
+          * `@json`:
+
+            Serializes the input as JSON.
+
+          * `@html`:
+
+            Applies HTML/XML escaping, by mapping the characters
+            `<>&'"` to their entity equivalents `&lt;`, `&gt;`,
+            `&amp;`, `&apos;`, `&quot;`.
+
+          * `@uri`:
+
+            Applies percent-encoding, by mapping all reserved URI
+            characters to a `%XX` sequence.
+
+          * `@csv`:
+
+            The input must be an array, and it is rendered as CSV
+            with double quotes for strings, and quotes escaped by
+            repetition.
+
+          * `@tsv`:
+
+            The input must be an array, and it is rendered as TSV
+            (tab-separated values). Each input array will be printed as
+            a single line. Fields are separated by a single
+            tab (ascii `0x09`). Input characters line-feed (ascii `0x0a`),
+            carriage-return (ascii `0x0d`), tab (ascii `0x09`) and
+            backslash (ascii `0x5c`) will be output as escape sequences
+            `\n`, `\r`, `\t`, `\\` respectively.
+
+          * `@sh`:
+
+            The input is escaped suitable for use in a command-line
+            for a POSIX shell. If the input is an array, the output
+            will be a series of space-separated strings.
+
+          * `@base64`:
+
+            The input is converted to base64 as specified by RFC 4648.
+
+          This syntax can be combined with string interpolation in a
+          useful way. You can follow a `@foo` token with a string
+          literal. The contents of the string literal will *not* be
+          escaped. However, all interpolations made inside that string
+          literal will be escaped. For instance,
+
+              @uri "https://www.google.com/search?q=\(.search)"
+
+          will produce the following output for the input
+          `{"search":"what is jq?"}`:
+
+              "https://www.google.com/search?q=what%20is%20jq%3F"
+
+          Note that the slashes, question mark, etc. in the URL are
+          not escaped, as they were part of the string literal.
+
+        examples:
+          - program: '@html'
+            input: '"This works if x < y"'
+            output: ['"This works if x &lt; y"']
+
+#          - program: '@html "<span>Anonymous said: \(.)</span>"'
+#            input: '"<script>alert(\"lol hax\");</script>"'
+#            output: ["<span>Anonymous said: &lt;script&gt;alert(&quot;lol hax&quot;);&lt;/script&gt;</span>"]
+
+          - program: '@sh "echo \(.)"'
+            input: "\"O'Hara's Ale\""
+            output: ["\"echo 'O'\\\\''Hara'\\\\''s Ale'\""]
+
+      - title: "Dates"
+        body: |
+
+          jq provides some basic date handling functionality, with some
+          high-level and low-level builtins.  In all cases these
+          builtins deal exclusively with time in UTC.
+
+          The `fromdateiso8601` builtin parses datetimes in the ISO 8601
+          format to a number of seconds since the Unix epoch
+          (1970-01-01T00:00:00Z).  The `todateiso8601` builtin does the
+          inverse.
+
+          The `fromdate` builtin parses datetime strings.  Currently
+          `fromdate` only supports ISO 8601 datetime strings, but in the
+          future it will attempt to parse datetime strings in more
+          formats.
+
+          The `todate` builtin is an alias for `todateiso8601`.
+
+          The `now` builtin outputs the current time, in seconds since
+          the Unix epoch.
+
+          Low-level jq interfaces to the C-library time functions are
+          also provided: `strptime`, `strftime`, `mktime`, and `gmtime`.
+          Refer to your host operating system's documentation for the
+          format strings used by `strptime` and `strftime`.  Note: these
+          are not necessarily stable interfaces in jq, particularly as
+          to their localization functionality.
+
+          The `gmtime` builtin consumes a number of seconds since the
+          Unix epoch and outputs a "broken down time" representation of
+          time as an array of numbers representing (in this order): the
+          year, the month (zero-based), the day of the month, the hour
+          of the day, the minute of the hour, the second of the minute,
+          the day of the week, and the day of the year -- all one-based
+          unless otherwise stated.
+
+          The `mktime` builtin consumes "broken down time"
+          representations of time output by `gmtime` and `strptime`.
+
+          The `strptime(fmt)` builtin parses input strings matching the
+          `fmt` argument.  The output is in the "broken down time"
+          representation consumed by `gmtime` and output by `mktime`.
+
+          The `strftime(fmt)` builtin formats a time with the given
+          format.
+
+          The format strings for `strptime` and `strftime` are described
+          in typical C library documentation.  The format string for ISO
+          8601 datetime is `"%Y-%m-%dT%H:%M:%SZ"`.
+
+          jq may not support some or all of this date functionality on
+          some systems.
+
+        examples:
+          - program: 'fromdate'
+            input: '"2015-03-05T23:51:47Z"'
+            output: ['1425599507']
+
+          - program: 'strptime("%Y-%m-%dT%H:%M:%SZ")'
+            input: '"2015-03-05T23:51:47Z"'
+            output: ['[2015,2,5,23,51,47,4,63]']
+
+          - program: 'strptime("%Y-%m-%dT%H:%M:%SZ")|mktime'
+            input: '"2015-03-05T23:51:47Z"'
+            output: ['1425599507']
+
+  - title: Conditionals and Comparisons
+    entries:
+      - title: "`==`, `!=`"
+        body: |
+
+          The expression 'a == b' will produce 'true' if the result of a and b
+          are equal (that is, if they represent equivalent JSON documents) and
+          'false' otherwise. In particular, strings are never considered equal
+          to numbers. If you're coming from Javascript, jq's == is like
+          Javascript's === - considering values equal only when they have the
+          same type as well as the same value.
+
+          != is "not equal", and 'a != b' returns the opposite value of 'a == b'
+
+        examples:
+          - program: '.[] == 1'
+            input: '[1, 1.0, "1", "banana"]'
+            output: ['true', 'true', 'false', 'false']
+
+      - title: if-then-else
+        body: |
+
+          `if A then B else C end` will act the same as `B` if `A`
+          produces a value other than false or null, but act the same
+          as `C` otherwise.
+
+          Checking for false or null is a simpler notion of
+          "truthiness" than is found in Javascript or Python, but it
+          means that you'll sometimes have to be more explicit about
+          the condition you want: you can't test whether, e.g. a
+          string is empty using `if .name then A else B end`, you'll
+          need something more like `if (.name | length) > 0 then A else
+          B end` instead.
+
+          If the condition `A` produces multiple results, then `B` is evaluated
+          once for each result that is not false or null, and `C` is evaluated
+          once for each false or null.
+
+          More cases can be added to an if using `elif A then B` syntax.
+
+        examples:
+          - program: |-
+              if . == 0 then
+                "zero"
+              elif . == 1 then
+                "one"
+              else
+                "many"
+              end
+            input: 2
+            output: ['"many"']
+
+      - title: "`>, >=, <=, <`"
+        body: |
+
+          The comparison operators `>`, `>=`, `<=`, `<` return whether
+          their left argument is greater than, greater than or equal
+          to, less than or equal to or less than their right argument
+          (respectively).
+
+          The ordering is the same as that described for `sort`, above.
+
+        examples:
+          - program: '. < 5'
+            input: 2
+            output: ['true']
+
+      - title: and/or/not
+        body: |
+
+          jq supports the normal Boolean operators and/or/not. They have the
+          same standard of truth as if expressions - false and null are
+          considered "false values", and anything else is a "true value".
+
+          If an operand of one of these operators produces multiple
+          results, the operator itself will produce a result for each input.
+
+          `not` is in fact a builtin function rather than an operator,
+          so it is called as a filter to which things can be piped
+          rather than with special syntax, as in `.foo and .bar |
+          not`.
+
+          These three only produce the values "true" and "false", and
+          so are only useful for genuine Boolean operations, rather
+          than the common Perl/Python/Ruby idiom of
+          "value_that_may_be_null or default". If you want to use this
+          form of "or", picking between two values rather than
+          evaluating a condition, see the "//" operator below.
+
+        examples:
+          - program: '42 and "a string"'
+            input: 'null'
+            output: ['true']
+          - program: '(true, false) or false'
+            input: 'null'
+            output: ['true', 'false']
+#          - program: '(true, false) and (true, false)'
+#            input: 'null'
+#            output: ['true', 'false', 'false', 'false']
+          - program: '(true, true) and (true, false)'
+            input: 'null'
+            output: ['true', 'false', 'true', 'false']
+          - program: '[true, false | not]'
+            input: 'null'
+            output: ['[false, true]']
+
+      - title: Alternative operator - `//`
+        body: |
+
+          A filter of the form `a // b` produces the same
+          results as `a`, if `a` produces results other than `false`
+          and `null`. Otherwise, `a // b` produces the same results as `b`.
+
+          This is useful for providing defaults: `.foo // 1` will
+          evaluate to `1` if there's no `.foo` element in the
+          input. It's similar to how `or` is sometimes used in Python
+          (jq's `or` operator is reserved for strictly Boolean
+          operations).
+
+        examples:
+          - program: '.foo // 42'
+            input: '{"foo": 19}'
+            output: [19]
+          - program: '.foo // 42'
+            input: '{}'
+            output: [42]
+
+      - title: try-catch
+        body: |
+
+          Errors can be caught by using `try EXP catch EXP`.  The first
+          expression is executed, and if it fails then the second is
+          executed with the error message.  The output of the handler,
+          if any, is output as if it had been the output of the
+          expression to try.
+
+          The `try EXP` form uses `empty` as the exception handler.
+
+        examples:
+          - program: 'try .a catch ". is not an object"'
+            input: 'true'
+            output: ['". is not an object"']
+          - program: '[.[]|try .a]'
+            input: '[{}, true, {"a":1}]'
+            output: ['[null, 1]']
+          - program: 'try error("some exception") catch .'
+            input: 'true'
+            output: ['"some exception"']
+
+      - title: Breaking out of control structures
+        body: |
+
+          A convenient use of try/catch is to break out of control
+          structures like `reduce`, `foreach`, `while`, and so on.
+
+          For example:
+
+              # Repeat an expression until it raises "break" as an
+              # error, then stop repeating without re-raising the error.
+              # But if the error caught is not "break" then re-raise it.
+              try repeat(exp) catch .=="break" then empty else error;
+
+          jq has a syntax for named lexical labels to "break" or "go (back) to":
+
+              label $out | ... break $out ...
+
+          The `break $label_name` expression will cause the program to
+          to act as though the nearest (to the left) `label $label_name`
+          produced `empty`.
+
+          The relationship between the `break` and corresponding `label`
+          is lexical: the label has to be "visible" from the break.
+
+          To break out of a `reduce`, for example:
+
+              label $out | reduce .[] as $item (null; if .==false then break $out else ... end)
+
+          The following jq program produces a syntax error:
+
+              break $out
+
+          because no label `$out` is visible.
+
+      - title: "`?` operator"
+        body: |
+
+          The `?` operator, used as `EXP?`, is shorthand for `try EXP`.
+
+        examples:
+          - program: '[.[]|(.a)?]'
+            input: '[{}, true, {"a":1}]'
+            output: ['[null, 1]']
+
+
+  - title: Regular expressions (PCRE)
+    body: |
+
+      jq uses the Oniguruma regular expression library, as do php,
+      ruby, TextMate, Sublime Text, etc, so the description here
+      will focus on jq specifics.
+
+      The jq regex filters are defined so that they can be used using
+      one of these patterns:
+
+          STRING | FILTER( REGEX )
+          STRING | FILTER( REGEX; FLAGS )
+          STRING | FILTER( [REGEX] )
+          STRING | FILTER( [REGEX, FLAGS] )
+
+      where:
+      * STRING, REGEX and FLAGS are jq strings and subject to jq string interpolation;
+      * REGEX, after string interpolation, should be a valid PCRE regex;
+      * FILTER is one of `test`, `match`, or `capture`, as described below.
+
+      FLAGS is a string consisting of one of more of the supported flags:
+
+      * `g` - Global search (find all matches, not just the first)
+      * `i` - Case insensitive search
+      * `m` - Multi line mode ('.' will match newlines)
+      * `n` - Ignore empty matches
+      * `p` - Both s and m modes are enabled
+      * `s` - Single line mode ('^' -> '\A', '$' -> '\Z')
+      * `l` - Find longest possible matches
+      * `x` - Extended regex format (ignore whitespace and comments)
+
+      To match whitespace in an x pattern use an escape such as \s, e.g.
+
+      * test( "a\\sb", "x" ).
+
+      Note that certain flags may also be specified within REGEX, e.g.
+
+      * jq -n '("test", "TEst", "teST", "TEST") | test( "(?i)te(?-i)st" )'
+
+      evaluates to: true, true, false, false.
+
+    entries:
+      - title: "`test(val)`, `test(regex; flags)`"
+        body: |
+
+          Like `match`, but does not return match objects, only `true` or `false`
+          for whether or not the regex matches the input.
+
+        examples:
+          - program: 'test("foo")'
+            input: '"foo"'
+            output: ['true']
+          - program: '.[] | test("a b c # spaces are ignored"; "ix")'
+            input: '["xabcd", "ABC"]'
+            output: ['true', 'true']
+
+      - title: "`match(val)`, `match(regex; flags)`"
+        body: |
+
+          **match** outputs an object for each match it finds.  Matches have
+          the following fields:
+
+          * `offset` - offset in UTF-8 codepoints from the beginning of the input
+          * `length` - length in UTF-8 codepoints of the match
+          * `string` - the string that it matched
+          * `captures` - an array of objects representing capturing groups.
+
+          Capturing group objects have the following fields:
+
+          * `offset` - offset in UTF-8 codepoints from the beginning of the input
+          * `length` - length in UTF-8 codepoints of this capturing group
+          * `string` - the string that was captured
+          * `name` - the name of the capturing group (or `null` if it was unnamed)
+
+          Capturing groups that did not match anything return an offset of -1
+
+        examples:
+          - program: 'match("(abc)+"; "g")'
+            input: '"abc abc"'
+            output:
+             - '{"offset": 0, "length": 3, "string": "abc", "captures": [{"offset": 0, "length": 3, "string": "abc", "name": null}]}'
+             - '{"offset": 4, "length": 3, "string": "abc", "captures": [{"offset": 4, "length": 3, "string": "abc", "name": null}]}'
+          - program: 'match("foo")'
+            input: '"foo bar foo"'
+            output: ['{"offset": 0, "length": 3, "string": "foo", "captures": []}']
+          - program: 'match(["foo", "ig"])'
+            input: '"foo bar FOO"'
+            output:
+             - '{"offset": 0, "length": 3, "string": "foo", "captures": []}'
+             - '{"offset": 8, "length": 3, "string": "FOO", "captures": []}'
+          - program: 'match("foo (?<bar123>bar)? foo"; "ig")'
+            input: '"foo bar foo foo  foo"'
+            output:
+             - '{"offset": 0, "length": 11, "string": "foo bar foo", "captures": [{"offset": 4, "length": 3, "string": "bar", "name": "bar123"}]}'
+             - '{"offset": 12, "length": 8, "string": "foo  foo", "captures": [{"offset": -1, "length": 0, "string": null, "name": "bar123"}]}'
+
+          - program: '[ match("."; "g")] | length'
+            input: '"abc"'
+            output: [3]
+
+
+      - title: "`capture(val)`, `capture(regex; flags)`"
+        body: |
+
+         Collects the named captures in a JSON object, with the name
+         of each capture as the key, and the matched string as the
+         corresponding value.
+
+        examples:
+          - program: 'capture("(?<a>[a-z]+)-(?<n>[0-9]+)")'
+            input: '"xyzzy-14"'
+            output: ['{ "a": "xyzzy", "n": "14" }']
+
+      - title: "`scan(regex)`, `scan(regex; flags)`"
+        body: |
+
+          Emit a stream of the non-overlapping substrings of the input
+          that match the regex in accordance with the flags, if any
+          have been specified.  If there is no match, the stream is empty.
+          To capture all the matches for each input string, use the idiom
+          `[ expr ]`, e.g. `[ scan(regex) ]`.
+
+        example:
+          - program: 'scan("c")'
+            input: '"abcdefabc"'
+            output: ['"c"', '"c"']
+
+          - program: 'scan("b")'
+            input: ("", "")
+            output: ['[]', '[]']
+
+      - title: "`split(regex; flags)`"
+        body: |
+
+          For backwards compatibility, `split` splits on a string, not a regex.
+
+        example:
+          - program: 'split(", *"; null)'
+            input: '"ab,cd, ef"'
+            output: ['"ab","cd","ef"']
+
+
+      - title: "`splits(regex)`, `splits(regex; flags)`"
+        body: |
+
+          These provide the same results as their `split` counterparts,
+          but as a stream instead of an array.
+
+        example:
+          - program: 'splits(", *")'
+            input: '("ab,cd", "ef, gh")'
+            output: ['"ab"', '"cd"', '"ef"', '"gh"']
+
+      - title: "`sub(regex; tostring)` `sub(regex; string; flags)`"
+        body: |
+
+          Emit the string obtained by replacing the first match of regex in the
+          input string with `tostring`, after interpolation.  `tostring` should
+          be a jq string, and may contain references to named captures. The
+          named captures are, in effect, presented as a JSON object (as
+          constructed by `capture`) to `tostring`, so a reference to a captured
+          variable named "x" would take the form: "\(.x)".
+
+        example:
+          - program: 'sub("^[^a-z]*(?<x>[a-z]*).*")'
+            input: '"123abc456"'
+            output: '"ZabcZabc"'
+
+
+      - title: "`gsub(regex; string)`, `gsub(regex; string; flags)`"
+        body: |
+
+          `gsub` is like `sub` but all the non-overlapping occurrences of the regex are
+          replaced by the string, after interpolation.
+
+        example:
+          - program: 'gsub("(?<x>.)[^a]*"; "+\(.x)-")'
+            input: '"Abcabc"'
+            output: '"+A-+a-"'
+
+
+  - title: Advanced features
+    body: |
+      Variables are an absolute necessity in most programming languages, but
+      they're relegated to an "advanced feature" in jq.
+
+      In most languages, variables are the only means of passing around
+      data. If you calculate a value, and you want to use it more than once,
+      you'll need to store it in a variable. To pass a value to another part
+      of the program, you'll need that part of the program to define a
+      variable (as a function parameter, object member, or whatever) in
+      which to place the data.
+
+      It is also possible to define functions in jq, although this is
+      is a feature whose biggest use is defining jq's standard library
+      (many jq functions such as `map` and `find` are in fact written
+      in jq).
+
+      jq has reduction operators, which are very powerful but a bit
+      tricky.  Again, these are mostly used internally, to define some
+      useful bits of jq's standard library.
+
+      It may not be obvious at first, but jq is all about generators
+      (yes, as often found in other languages).  Some utilities are
+      provided to help deal with generators.
+
+      Some minimal I/O support (besides reading JSON from standard
+      input, and writing JSON to standard output) is available.
+
+      Finally, there is a module/library system.
+
+    entries:
+      - title: Variables
+        body: |
+
+          In jq, all filters have an input and an output, so manual
+          plumbing is not necessary to pass a value from one part of a program
+          to the next. Many expressions, for instance `a + b`, pass their input
+          to two distinct subexpressions (here `a` and `b` are both passed the
+          same input), so variables aren't usually necessary in order to use a
+          value twice.
+
+          For instance, calculating the average value of an array of numbers
+          requires a few variables in most languages - at least one to hold the
+          array, perhaps one for each element or for a loop counter. In jq, it's
+          simply `add / length` - the `add` expression is given the array and
+          produces its sum, and the `length` expression is given the array and
+          produces its length.
+
+          So, there's generally a cleaner way to solve most problems in jq than
+          defining variables. Still, sometimes they do make things easier, so jq
+          lets you define variables using `expression as $variable`. All
+          variable names start with `$`. Here's a slightly uglier version of the
+          array-averaging example:
+
+              length as $array_length | add / $array_length
+
+          We'll need a more complicated problem to find a situation where using
+          variables actually makes our lives easier.
+
+
+          Suppose we have an array of blog posts, with "author" and "title"
+          fields, and another object which is used to map author usernames to
+          real names. Our input looks like:
+
+              {"posts": [{"title": "Frist psot", "author": "anon"},
+                         {"title": "A well-written article", "author": "person1"}],
+               "realnames": {"anon": "Anonymous Coward",
+                             "person1": "Person McPherson"}}
+
+          We want to produce the posts with the author field containing a real
+          name, as in:
+
+              {"title": "Frist psot", "author": "Anonymous Coward"}
+              {"title": "A well-written article", "author": "Person McPherson"}
+
+          We use a variable, $names, to store the realnames object, so that we
+          can refer to it later when looking up author usernames:
+
+              .realnames as $names | .posts[] | {title, author: $names[.author]}
+
+          The expression `exp as $x | ...` means: for each value of expression
+          `exp`, run the rest of the pipeline with the entire original input, and
+          with `$x` set to that value.  Thus `as` functions as something of a
+          foreach loop.
+
+          Just as `{foo}` is a handy way of writing `{foo: .foo}`, so
+          `{$foo}` is a handy way of writing `{foo:$foo}`.
+
+          Multiple variables may be declared using a single `as` expression by
+          providing a pattern that matches the structure of the input
+          (this is known as "destructuring"):
+
+              . as {realnames: $names, posts: [$first, $second]} | ...
+
+          The variable declarations in array patterns (e.g., `. as
+          [$first, $second]`) bind to the elements of the array in from
+          the element at index zero on up, in order.  When there is no
+          value at the index for an array pattern element, `null` is
+          bound to that variable.
+
+          Variables are scoped over the rest of the expression that defines
+          them, so
+
+              .realnames as $names | (.posts[] | {title, author: $names[.author]})
+
+          will work, but
+
+              (.realnames as $names | .posts[]) | {title, author: $names[.author]}
+
+          won't.
+
+          For programming language theorists, it's more accurate to
+          say that jq variables are lexically-scoped bindings.  In
+          particular there's no way to change the value of a binding;
+          one can only setup a new binding with the same name, but which
+          will not be visible where the old one was.
+
+        examples:
+          - program: '.bar as $x | .foo | . + $x'
+            input: '{"foo":10, "bar":200}'
+            output: ['210']
+          - program: '. as $i|[(.*2|. as $i| $i), $i]'
+            input: '5'
+            output: ['[10,5]']
+          - program: '. as [$a, $b, {c: $c}] | $a + $b + $c'
+            input: '[2, 3, {"c": 4, "d": 5}]'
+            output: ['9']
+          - program: '.[] as [$a, $b] | {a: $a, b: $b}'
+            input: '[[0], [0, 1], [2, 1, 0]]'
+            output: ['{"a":0,"b":null}', '{"a":0,"b":1}', '{"a":2,"b":1}']
+
+      - title: 'Defining Functions'
+        body: |
+
+          You can give a filter a name using "def" syntax:
+
+              def increment: . + 1;
+
+          From then on, `increment` is usable as a filter just like a
+          builtin function (in fact, this is how some of the builtins
+          are defined). A function may take arguments:
+
+              def map(f): [.[] | f];
+
+          Arguments are passed as filters, not as values. The
+          same argument may be referenced multiple times with
+          different inputs (here `f` is run for each element of the
+          input array). Arguments to a function work more like
+          callbacks than like value arguments.  This is important to
+          understand.  Consider:
+
+              def foo(f): f|f;
+              5|foo(.*2)
+
+          The result will be 20 because `f` is `.*2`, and during the
+          first invocation of `f` `.` will be 5, and the second time it
+          will be 10 (5 * 2), so the result will be 20.  Function
+          arguments are filters, and filters expect an input when
+          invoked.
+
+          If you want the value-argument behaviour for defining simple
+          functions, you can just use a variable:
+
+              def addvalue(f): f as $f | map(. + $f);
+
+          Or use the short-hand:
+
+              def addvalue($f): ...;
+
+          With either definition, `addvalue(.foo)` will add the current
+          input's `.foo` field to each element of the array.
+
+          Multiple definitions using the same function name are allowed.
+          Each re-definition replaces the previous one for the same
+          number of function arguments, but only for references from
+          functions (or main program) subsequent to the re-definition.
+
+        examples:
+          - program: 'def addvalue(f): . + [f]; map(addvalue(.[0]))'
+            input: '[[1,2],[10,20]]'
+            output: ['[[1,2,1], [10,20,10]]']
+          - program: 'def addvalue(f): f as $x | map(. + $x); addvalue(.[0])'
+            input: '[[1,2],[10,20]]'
+            output: ['[[1,2,1,2], [10,20,1,2]]']
+
+      - title: Reduce
+        body: |
+
+          The `reduce` syntax in jq allows you to combine all of the
+          results of an expression by accumulating them into a single
+          answer. As an example, we'll pass `[3,2,1]` to this expression:
+
+              reduce .[] as $item (0; . + $item)
+
+          For each result that `.[]` produces, `. + $item` is run to
+          accumulate a running total, starting from 0. In this
+          example, `.[]` produces the results 3, 2, and 1, so the
+          effect is similar to running something like this:
+
+              0 | (3 as $item | . + $item) |
+                  (2 as $item | . + $item) |
+                  (1 as $item | . + $item)
+
+        examples:
+          - program: 'reduce .[] as $item (0; . + $item)'
+            input: '[10,2,5,3]'
+            output: ['20']
+
+      - title: "`limit(n; exp)`"
+        body: |
+
+          The `limit` function extracts up to `n` outputs from `exp`.
+
+        examples:
+          - program: '[limit(3;.[])]'
+            input: '[0,1,2,3,4,5,6,7,8,9]'
+            output: ['[0,1,2]']
+
+      - title: "`first(expr)`, `last(expr)`, `nth(n; expr)`"
+        body: |
+
+          The `first(expr)` and `last(expr)` functions extract the first
+          and last values from `expr`, respectively.
+
+          The `nth(n; expr)` function extracts the nth value output by
+          `expr`.  This can be defined as `def nth(n; expr):
+          last(limit(n + 1; expr));`.  Note that `nth(n; expr)` doesn't
+          support negative values of `n`.
+
+        examples:
+          - program: '[first(range(.)), last(range(.)), nth(./2; range(.))]'
+            input: '10'
+            output: ['[0,9,5]']
+
+      - title: "`first`, `last`, `nth(n)`"
+        body: |
+
+          The `first` and `last` functions extract the first
+          and last values from any array at `.`.
+
+          The `nth(n)` function extracts the nth value of any array at `.`.
+
+        examples:
+          - program: '[range(.)]|[first, last, nth(5)]'
+            input: '10'
+            output: ['[0,9,5]']
+
+      - title: "`foreach`"
+        body: |
+
+          The `foreach` syntax is similar to `reduce`, but intended to
+          allow the construction of `limit` and reducers that produce
+          intermediate results (see example).
+
+          The form is `foreach EXP as $var (INIT; UPDATE; EXTRACT)`.
+          Like `reduce`, `INIT` is evaluated once to produce a state
+          value, then each output of `EXP` is bound to `$var`, `UPDATE`
+          is evaluated for each output of `EXP` with the current state
+          and with `$var` visible.  Each value output by `UPDATE`
+          replaces the previous state.  Finally, `EXTRACT` is evaluated
+          for each new state to extract an output of `foreach`.
+
+          This is mostly useful only for constructing `reduce`- and
+          `limit`-like functions.  But it is much more general, as it
+          allows for partial reductions (see the example below).
+
+        examples:
+          - program: '[foreach .[] as $item
+                        ([[],[]];
+                        if $item == null then [[],.[0]] else [(.[0] + [$item]),[]] end;
+                        if $item == null then .[1] else empty end)]'
+            input: '[1,2,3,4,null,"a","b",null]'
+            output: ['[[1,2,3,4],["a","b"]]']
+
+      - title: Recursion
+        body: |
+
+          As described above, `recurse` uses recursion, and any jq
+          function can be recursive.  The `while` builtin is also
+          implemented in terms of recursion.
+
+          Tail calls are optimized whenever the expression to the left of
+          the recursive call outputs its last value.  In practice this
+          means that the expression to the left of the recursive call
+          should not produce more than one output for each input.
+
+          For example:
+
+              def recurse(f): def r: ., (f | select(. != null) | r); r;
+
+              def while(cond; update):
+                def _while:
+                  if cond then ., (update | _while) else empty end;
+                _while;
+
+              def repeat(exp):
+                def _repeat:
+                  exp, _repeat;
+                _repeat;
+
+      - title: Generators and iterators
+        body: |
+
+            Some jq operators and functions are actually generators in
+            that they can produce zero, one, or more values for each
+            input, just as one might expect in other programming
+            languages that have generators.  For example, `.[]`
+            generates all the values in its input (which must be an
+            array or an object), `range(0; 10)` generates the integers
+            between 0 and 10, and so on.
+
+            Even the comma operator is a generator, generating first the
+            values generated by the expression to the left of the comma,
+            then for each of those, the values generate by the
+            expression on the right of the comma.
+
+            The `empty` builtin is the generator that produces zero
+            outputs.  The `empty` builtin backtracks to the preceding
+            generator expression.
+
+            All jq functions can be generators just by using builtin
+            generators.  It is also possible to define new generators
+            using only recursion and the comma operator.  If the
+            recursive call(s) is(are) "in tail position" then the
+            generator will be efficient.  In the example below the
+            recursive call by `_range` to itself is in tail position.
+            The example shows off three advanced topics: tail recursion,
+            generator construction, and sub-functions.
+
+        examples:
+          - program: 'def range(init; upto; by):
+                    def _range:
+                        if (by > 0 and . < upto) or (by < 0 and . > upto)
+                        then ., ((.+by)|_range)
+                        else . end;
+                    if by == 0 then init else init|_range end |
+                    select((by > 0 and . < upto) or (by < 0 and . > upto));
+                range(0; 10; 3)'
+            input: 'null'
+            output: ['0', '3', '6', '9']
+          - program: 'def while(cond; update):
+                    def _while:
+                        if cond then ., (update | _while) else empty end;
+                    _while;
+                [while(.<100; .*2)]'
+            input: '1'
+            output: ['[1,2,4,8,16,32,64]']
+
+  - title: 'Math'
+    body: |
+
+      jq currently only has IEEE754 double-precision (64-bit) floating
+      point number support.
+
+      Besides simple arithmetic operators such as `+`, jq also has most
+      standard math functions from the C math library.  C math functions
+      that take a single input argument (e.g., `sin()`) are available as
+      zero-argument jq functions.  C math functions that take two input
+      arguments (e.g., `pow()`) are available as two-argument jq
+      functions that ignore `.`.
+
+      Availability of standard math functions depends on the
+      availability of the corresponding math functions in your operating
+      system and C math library.  Unavailable math functions will be
+      defined but will raise an error.
+
+  - title: 'I/O'
+    body: |
+
+      At this time jq has minimal support for I/O, mostly in the
+      form of control over when inputs are read.  Two builtins functions
+      are provided for this, `input` and `inputs`, that read from the
+      same sources (e.g., `stdin`, files named on the command-line) as
+      jq itself.  These two builtins, and jq's own reading actions, can
+      be interleaved with each other.
+
+      One builtin provides minimal output capabilities, `debug`.
+      (Recall that a jq program's output values are always output as
+      JSON texts on `stdout`.)  The `debug` builtin can have
+      application-specific behavior, such as for executables that use
+      the libjq C API but aren't the jq executable itself.
+
+    entries:
+      - title: "`input`"
+        body: |
+
+          Outputs one new input.
+
+      - title: "`inputs`"
+        body: |
+
+          Outputs all remaining inputs, one by one.
+
+          This is primarily useful for reductions over a program's
+          inputs.
+
+      - title: "`debug`"
+        body: |
+
+          Causes a debug message based on the input value to be
+          produced.  The jq executable wraps the input value with
+          `["DEBUG:", <input-value>]` and prints that and a newline on
+          stderr, compactly.  This may change in the future.
+
+      - title: "`input_filename`"
+        body: |
+
+          Returns the name of the file whose input is currently being
+          filtered.  Note that this will not work well unless jq is
+          running in a UTF-8 locale.
+
+      - title: "`input_line_number`"
+        body: |
+
+          Returns the line number of the input currently being filtered.
+
+  - title: 'Streaming'
+    body: |
+
+      With the `--stream` option jq can parse input texts in a streaming
+      fashion, allowing jq programs to start processing large JSON texts
+      immediately rather than after the parse completes.  If you have a
+      single JSON text that is 1GB in size, streaming it will allow you
+      to process it much more quickly.
+
+      However, streaming isn't easy to deal with as the jq program will
+      have `[<path>, <leaf-value>]` (and a few other forms) as inputs.
+
+      Several builtins are provided to make handling streams easier.
+
+      The examples below use the streamed form of `[0,[1]]`, which
+      is `[[0],0],[[1,0],1],[[1,0]],[[1]]`.
+
+      Streaming forms include `[<path>, <leaf-value>]` (to indicate any
+      scalar value, empty array, or empty object), and `[<path>]` (to
+      indicate the end of an array or object).  Future versions of jq
+      run with `--stream` and `-seq` may output additional forms such as
+      `["error message"]` when an input text fails to parse.
+
+    entries:
+      - title: "`truncate_stream(stream_expression)`"
+        body: |
+
+          Consumes a number as input and truncates the corresponding
+          number of path elements from the left of the outputs of the
+          given streaming expression.
+
+        examples:
+          - program: '[1|truncate_stream([[0],1],[[1,0],2],[[1,0]],[[1]])]'
+            input: '1'
+            output: ['[[[0],2],[[0]]]']
+
+      - title: "`fromstream(stream_expression)`"
+        body: |
+
+          Outputs values corresponding to the stream expression's
+          outputs.
+
+        examples:
+          - program: 'fromstream(1|truncate_stream([[0],1],[[1,0],2],[[1,0]],[[1]]))'
+            input: 'null'
+            output: ['[2]']
+
+      - title: "`tostream`"
+        body: |
+
+          The `tostream` builtin outputs the streamed form of its input.
+
+        examples:
+          - program: '. as $dot|fromstream($dot|tostream)|.==$dot'
+            input: '[0,[1,{"a":1},{"b":2}]]'
+            output: ['true']
+
+  - title: Assignment
+    body: |
+
+      Assignment works a little differently in jq than in most
+      programming languages. jq doesn't distinguish between references
+      to and copies of something - two objects or arrays are either
+      equal or not equal, without any further notion of being "the
+      same object" or "not the same object".
+
+      If an object has two fields which are arrays, `.foo` and `.bar`,
+      and you append something to `.foo`, then `.bar` will not get
+      bigger. Even if you've just set `.bar = .foo`. If you're used to
+      programming in languages like Python, Java, Ruby, Javascript,
+      etc. then you can think of it as though jq does a full deep copy
+      of every object before it does the assignment (for performance,
+      it doesn't actually do that, but that's the general idea).
+
+      All the assignment operators in jq have path expressions on the
+      left-hand side.
+
+    entries:
+      - title: "`=`"
+        body: |
+
+          The filter `.foo = 1` will take as input an object
+          and produce as output an object with the "foo" field set to
+          1. There is no notion of "modifying" or "changing" something
+          in jq - all jq values are immutable. For instance,
+
+           .foo = .bar | .foo.baz = 1
+
+          will not have the side-effect of setting .bar.baz to be set
+          to 1, as the similar-looking program in Javascript, Python,
+          Ruby or other languages would. Unlike these languages (but
+          like Haskell and some other functional languages), there is
+          no notion of two arrays or objects being "the same array" or
+          "the same object". They can be equal, or not equal, but if
+          we change one of them in no circumstances will the other
+          change behind our backs.
+
+          This means that it's impossible to build circular values in
+          jq (such as an array whose first element is itself). This is
+          quite intentional, and ensures that anything a jq program
+          can produce can be represented in JSON.
+
+          Note that the left-hand side of '=' refers to a value in `.`.
+          Thus `$var.foo = 1` won't work as expected (`$var.foo` is not
+          a valid or useful path expression in `.`); use `$var | .foo =
+          1` instead.
+
+          If the right-hand side of '=' produces multiple values, then
+          for each such value jq will set the paths on the left-hand
+          side to the value and then it will output the modified `.`.
+          For example, `(.a,.b)=range(2)` outputs `{"a":0,"b":0}`, then
+          `{"a":1,"b":1}`.  The "update" assignment forms (see below) do
+          not do this.
+
+          Note too that `.a,.b=0` does not set `.a` and `.b`, but
+          `(.a,.b)=0` sets both.
+
+      - title: "`|=`"
+        body: |
+          As well as the assignment operator '=', jq provides the "update"
+          operator '|=', which takes a filter on the right-hand side and
+          works out the new value for the property of `.` being assigned
+          to by running the old value through this expression. For
+          instance, .foo |= .+1 will build an object with the "foo"
+          field set to the input's "foo" plus 1.
+
+          This example should show the difference between '=' and '|=':
+
+          Provide input '{"a": {"b": 10}, "b": 20}' to the programs:
+
+          .a = .b
+          .a |= .b
+
+          The former will set the "a" field of the input to the "b" field of the
+          input, and produce the output {"a": 20}. The latter will set the "a"
+          field of the input to the "a" field's "b" field, producing {"a": 10}.
+
+          The left-hand side can be any general path expression; see `path()`.
+
+          Note that the left-hand side of '|=' refers to a value in `.`.
+          Thus `$var.foo |= . + 1` won't work as expected (`$var.foo` is
+          not a valid or useful path expression in `.`); use `$var |
+          .foo |= . + 1` instead.
+
+          If the right-hand side outputs multiple values, only the last
+          one will be used.
+
+        examples:
+
+          - program: '(..|select(type=="boolean")) |= if . then 1 else 0 end'
+            input: '[true,false,[5,true,[true,[false]],false]]'
+            output: ['[1,0,[5,1,[1,[0]],0]]']
+
+      - title: "`+=`, `-=`, `*=`, `/=`, `%=`, `//=`"
+        body: |
+
+          jq has a few operators of the form `a op= b`, which are all
+          equivalent to `a |= . op b`. So, `+= 1` can be used to increment values.
+
+        examples:
+          - program: .foo += 1
+            input: '{"foo": 42}'
+            output: ['{"foo": 43}']
+
+      - title: Complex assignments
+        body: |
+          Lots more things are allowed on the left-hand side of a jq assignment
+          than in most languages. We've already seen simple field accesses on
+          the left hand side, and it's no surprise that array accesses work just
+          as well:
+
+              .posts[0].title = "JQ Manual"
+
+          What may come as a surprise is that the expression on the left may
+          produce multiple results, referring to different points in the input
+          document:
+
+              .posts[].comments |= . + ["this is great"]
+
+          That example appends the string "this is great" to the "comments"
+          array of each post in the input (where the input is an object with a
+          field "posts" which is an array of posts).
+
+          When jq encounters an assignment like 'a = b', it records the "path"
+          taken to select a part of the input document while executing a. This
+          path is then used to find which part of the input to change while
+          executing the assignment. Any filter may be used on the
+          left-hand side of an equals - whichever paths it selects from the
+          input will be where the assignment is performed.
+
+          This is a very powerful operation. Suppose we wanted to add a comment
+          to blog posts, using the same "blog" input above. This time, we only
+          want to comment on the posts written by "stedolan". We can find those
+          posts using the "select" function described earlier:
+
+              .posts[] | select(.author == "stedolan")
+
+          The paths provided by this operation point to each of the posts that
+          "stedolan" wrote, and we can comment on each of them in the same way
+          that we did before:
+
+              (.posts[] | select(.author == "stedolan") | .comments) |=
+                  . + ["terrible."]
+
+  - title: Modules
+    body: |
+
+      jq has a library/module system.  Modules are files whose names end
+      in `.jq`.
+
+      Modules imported by a program are searched for in a default search
+      path (see below).  The `import` and `include` directives allow the
+      importer to alter this path.
+
+      Paths in the a search path are subject to various substitutions.
+
+      For paths starting with "~/", the user's home directory is
+      substituted for "~".
+
+      For paths starting with "$ORIGIN/", the path of the jq executable
+      is substituted for "$ORIGIN".
+
+      For paths starting with "./" or paths that are ".", the path of
+      the including file is substituted for ".".  For top-level programs
+      given on the command-line, the current directory is used.
+
+      Import directives can optionally specify a search path to which
+      the default is appended.
+
+      The default search path is the search path given to the `-L`
+      command-line option, else `["~/.jq", "$ORIGIN/../lib/jq",
+      "$ORIGIN/../lib"]`.
+
+      Null and empty string path elements terminate search path
+      processing.
+
+      A dependency with relative path "foo/bar" would be searched for in
+      "foo/bar.jq" and "foo/bar/bar.jq" in the given search path. This
+      is intended to allow modules to be placed in a directory along
+      with, for example, version control files, README files, and so on,
+      but also to allow for single-file modules.
+
+      Consecutive components with the same name are not allowed to avoid
+      ambiguities (e.g., "foo/foo").
+
+      For example, with `-L$HOME/.jq` a module `foo` can be found in
+      `$HOME/.jq/foo.jq` and `$HOME/.jq/foo/foo.jq`.
+
+      If "$HOME/.jq" is a file, it is sourced into the main program.
+
+    entries:
+      - title: "`import RelativePathString as NAME [<metadata>];`"
+        body: |
+
+          Imports a module found at the given path relative to a
+          directory in a search path.  A ".jq" suffix will be added to
+          the relative path string.  The module's symbols are prefixed
+          with "NAME::".
+
+          The optional metadata must be a constant jq expression.  It
+          should be an object with keys like "homepage" and so on.  At
+          this time jq only uses the "search" key/value of the metadata.
+          The metadata is also made available to users via the
+          `modulemeta` builtin.
+
+          The "search" key in the metadata, if present, should have a
+          string or array value (array of strings); this is the search
+          path to be prefixed to the top-level search path.
+
+      - title: "`include RelativePathString [<metadata>];`"
+        body: |
+
+          Imports a module found at the given path relative to a
+          directory in a search path as if it were included in place.  A
+          ".jq" suffix will be added to the relative path string.  The
+          module's symbols are imported into the caller's namespace as
+          if the module's content had been included directly.
+
+          The optional metadata must be a constant jq expression.  It
+          should be an object with keys like "homepage" and so on.  At
+          this time jq only uses the "search" key/value of the metadata.
+          The metadata is also made available to users via the
+          `modulemeta` builtin.
+
+      - title: "`import RelativePathString as $NAME [<metadata>];`"
+        body: |
+
+          Imports a JSON file found at the given path relative to a
+          directory in a search path.  A ".json" suffix will be added to
+          the relative path string.  The file's data will be available
+          as `$NAME::NAME`.
+
+          The optional metadata must be a constant jq expression.  It
+          should be an object with keys like "homepage" and so on.  At
+          this time jq only uses the "search" key/value of the metadata.
+          The metadata is also made available to users via the
+          `modulemeta` builtin.
+
+          The "search" key in the metadata, if present, should have a
+          string or array value (array of strings); this is the search
+          path to be prefixed to the top-level search path.
+
+      - title: "`module <metadata>;`"
+        body: |
+
+          This directive is entirely optional.  It's not required for
+          proper operation.  It serves only the purpose of providing
+          metadata that can be read with the `modulemeta` builtin.
+
+          The metadata must be a constant jq expression.  It should be
+          an object with keys like "homepage".  At this time jq doesn't
+          use this metadata, but it is made available to users via the
+          `modulemeta` builtin.
+
+      - title: "`modulemeta`"
+        body: |
+
+          Takes a module name as input and outputs the module's metadata
+          as an object, with the module's imports (including metadata)
+          as an array value for the "deps" key.
+
+          Programs can use this to query a module's metadata, which they
+          could then use to, for example, search for, download, and
+          install missing dependencies.
