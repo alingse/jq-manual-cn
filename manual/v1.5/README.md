@@ -287,35 +287,42 @@ Input   [1,2,3]
 Output  2
 ```
 
+### `.[]`
+
+如果使用 `.[index]` 这种语法，但完全省略 index，他就会返回 array 的 **所有** 元素。
+
+对于输入 `[1,2,3]` 运行 `.[]` 就会生出 3 个独立的结果，而不是一个单个数组。
+
+
+也可以在 object 上使用它，它将返回 object 的所有 value
+
+[Examples](#example5)
+
+```jq
+        jq '.[]'
+--------------------
+Input   [{"name":"JSON", "good":true}, {"name":"XML", "good":false}]
+Output  {"name":"JSON", "good":true}
+        {"name":"XML", "good":false}
+
+```
+
+```jq
+        jq '.[]'
+--------------------
+Input   []
+Output
+```
+
+```jq
+        jq '.[]'
+--------------------
+Input   {"a": 1, "b": 1}
+Output  [1, 1]
+```
+
 ## TODO
 ---------------
-
-      - title: "`.[]`"
-        body: |
-
-          If you use the `.[index]` syntax, but omit the index
-          entirely, it will return *all* of the elements of an
-          array. Running `.[]` with the input `[1,2,3]` will produce the
-          numbers as three separate results, rather than as a single
-          array.
-
-          You can also use this on an object, and it will return all
-          the values of the object.
-
-        examples:
-          - program: '.[]'
-            input: '[{"name":"JSON", "good":true}, {"name":"XML", "good":false}]'
-            output:
-              - '{"name":"JSON", "good":true}'
-              - '{"name":"XML", "good":false}'
-
-          - program: '.[]'
-            input: '[]'
-            output: []
-
-          - program: '.[]'
-            input: '{"a": 1, "b": 1}'
-            output: ['1', '1']
 
       - title: "`.[]?`"
         body: |
