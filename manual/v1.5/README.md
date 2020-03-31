@@ -321,38 +321,44 @@ Input   {"a": 1, "b": 1}
 Output  [1, 1]
 ```
 
-## TODO
----------------
-
-      - title: "`.[]?`"
-        body: |
-
+### `.[]?`
+类似 `.[]`, 不过当 `.` 不是 array 或者 object 是不会输出 errors
           Like `.[]`, but no errors will be output if . is not an array
           or object.
 
-      - title: "`,`"
-        body: |
+### `,`
 
-          If two filters are separated by a comma, then the
-          input will be fed into both and there will be multiple
-          outputs: first, all of the outputs produced by the left
-          expression, and then all of the outputs produced by the
-          right. For instance, filter `.foo, .bar`, produces
-          both the "foo" fields and "bar" fields as separate outputs.
+如果用逗号分隔两个过滤器，输入就会被每个过滤器处理，并依次输出多个结果:
+首先是第一个过滤器的生成的所有输出，然后是第二个过滤器的生成的所有输出。
+如 `.foo, .bar` 生成 "foo" 字段和 "bar" 字段的值。
 
-        examples:
-          - program: '.foo, .bar'
-            input: '{"foo": 42, "bar": "something else", "baz": true}'
-            output: ['42', '"something else"']
+[Examples](#example6)
 
-          - program: ".user, .projects[]"
-            input: '{"user":"stedolan", "projects": ["jq", "wikiflow"]}'
-            output: ['"stedolan"', '"jq"', '"wikiflow"']
+```jq
+        jq '.foo, .bar'
+--------------------
+Input   {"foo": 42, "bar": "something else", "baz": true}
+Output  [42, "something else"]
+```
 
-          - program: '.[4,2]'
-            input: '["a","b","c","d","e"]'
-            output: ['"e"', '"c"']
+```jq
+        jq '.user, .projects[]'
+--------------------
+Input   {"user":"stedolan", "projects": ["jq", "wikiflow"]}
+Output  ["stedolan", "jq", "wikiflow"]
+```
 
+```jq
+        jq '.[4,2]'
+--------------------
+Input   ["a","b","c","d","e"]
+Output  ["e", "c"]
+```
+
+### `|`
+
+### TODO
+------
       - title: "`|`"
         body: |
           The | operator combines two filters by feeding the output(s) of
