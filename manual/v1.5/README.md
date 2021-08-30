@@ -371,50 +371,33 @@ Input   [{"name":"JSON", "good":true}, {"name":"XML", "good":false}]
 Output  ["JSON", '"XML"']
 ```
 
-## Types and Values
+## [Types and Values](#types-and-values)
 
 jq 支持与 JSON 相同的一组数据类型集合 -- 数字 `numbers`、 字符串 `strings`、布尔值 `booleans`、数组 `arrays`、对象 `objects`（在 JSON 中称做是仅有字符串键的哈希值 `hashes`）和 null 。
 
 布尔值 `booleans` 、空值 `null`、字符串 `strings` 和数字  `numbers` 的书写方式与在 JavaScript 中相同。和 jq 中其他的内容一样，这些简单的值也被看做接收一个输入, 并且产生一个输出。如, `42` 是一个合法的 jq 表达式, 忽略接收的输入, 并输出 42。
 
 
-<div id="todo">TODO flag </div>
+## [数组构造 - `[]`](#array-construction)
 
+与 JSON 一样，`[]` 用于构造数组，如 `[1,2,3]`。 数组的元素可以是任何 jq 表达式。所有表达式产生的所有结果都被收集到一个大数组中。你可以使用它从已知数量的值中构造一个数组（如 `[.foo, .bar, .baz]` ）或将过滤器的所有结果"收集"到一个数组中（如 `[.items[].name]`）
 
+一旦你理解了 `,` 运算符，你就可以从不同的角度看待 jq 的数组语法：表达式 `[1,2,3]` 不是使用逗号分隔数组的内置语法，而是在对表达式 `1,2,3`(输出 3 个值) 应用 `[]` 运算符(收集结果)。
 
-[todo3](#todo3)
+如果你有一个过滤器 `X` 产生四个结果，那么表达式 `[X]` 将产生一个结果，即一个包含四个元素的数组。
 
-### todo3
+[Examples](#example8)
+
+```jq
+        jq '[.user, .projects[]]'
+-------------------------------------
+Input   {"user":"stedolan", "projects": ["jq", "wikiflow"]}
+Output  ["stedolan", "jq", "wikiflow"]
+```
 
 ### TODO
 ------
 
-    entries:
-      - title: Array construction - `[]`
-        body: |
-
-          As in JSON, `[]` is used to construct arrays, as in
-          `[1,2,3]`. The elements of the arrays can be any jq
-          expression. All of the results produced by all of the
-          expressions are collected into one big array. You can use it
-          to construct an array out of a known quantity of values (as
-          in `[.foo, .bar, .baz]`) or to "collect" all the results of a
-          filter into an array (as in `[.items[].name]`)
-
-          Once you understand the "," operator, you can look at jq's array
-          syntax in a different light: the expression `[1,2,3]` is not using a
-          built-in syntax for comma-separated arrays, but is instead applying
-          the `[]` operator (collect results) to the expression 1,2,3 (which
-          produces three different results).
-
-          If you have a filter `X` that produces four results,
-          then the expression `[X]` will produce a single result, an
-          array of four elements.
-
-        examples:
-          - program: "[.user, .projects[]]"
-            input: '{"user":"stedolan", "projects": ["jq", "wikiflow"]}'
-            output: ['["stedolan", "jq", "wikiflow"]']
       - title: Objects - `{}`
         body: |
 
