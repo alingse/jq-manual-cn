@@ -357,37 +357,29 @@ Output  ["e", "c"]
 
 ### `|`
 
+`|` 运算符结合左右两个过滤器 Filter, 把左边的输出 `output` 投递到右边的输入 `input`。如果你用过 Unix shell 的管道 `pipe`, `|`几乎和它是一样的。
+
+如果左边的过滤器产生多个结果，则将为每个结果运行右侧过滤器。 所以表达式`.[] | .foo`检索输入数组里每个元素的 "foo" 字段。
+
+
+[Examples](#example7)
+
+```jq
+        jq '.[] | .name'
+--------------------
+Input   [{"name":"JSON", "good":true}, {"name":"XML", "good":false}]
+Output  ["JSON", '"XML"']
+```
+
+## Types and Values
+
+jq 支持与 JSON 相同的一组数据类型集合 -- 数字 `numbers`、 字符串 `strings`、布尔值 `booleans`、数组 `arrays`、对象 `objects`（在 JSON 中称做是仅有字符串键的哈希值 `hashes`）和 null 。
+
+布尔值 `booleans` 、空值 `null`、字符串 `strings` 和数字  `numbers` 的书写方式与在 JavaScript 中相同。和 jq 中其他的内容一样，这些简单的值也被看做接收一个输入, 并且产生一个输出。如, `42` 是一个合法的 jq 表达式, 忽略接收的输入, 并输出 42。
+
+
 ### TODO
 ------
-      - title: "`|`"
-        body: |
-          The | operator combines two filters by feeding the output(s) of
-          the one on the left into the input of the one on the right. It's
-          pretty much the same as the Unix shell's pipe, if you're used to
-          that.
-
-          If the one on the left produces multiple results, the one on
-          the right will be run for each of those results. So, the
-          expression `.[] | .foo` retrieves the "foo" field of each
-          element of the input array.
-
-        examples:
-          - program: '.[] | .name'
-            input: '[{"name":"JSON", "good":true}, {"name":"XML", "good":false}]'
-            output: ['"JSON"', '"XML"']
-
-  - title: Types and Values
-    body: |
-
-      jq supports the same set of datatypes as JSON - numbers,
-      strings, booleans, arrays, objects (which in JSON-speak are
-      hashes with only string keys), and "null".
-
-      Booleans, null, strings and numbers are written the same way as
-      in javascript. Just like everything else in jq, these simple
-      values take an input and produce an output - `42` is a valid jq
-      expression that takes an input, ignores it, and returns 42
-      instead.
 
     entries:
       - title: Array construction - `[]`
