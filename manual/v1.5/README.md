@@ -378,7 +378,7 @@ jq 支持与 JSON 相同的一组数据类型集合 -- 数字 `numbers`、 字�
 布尔值 `booleans` 、空值 `null`、字符串 `strings` 和数字  `numbers` 的书写方式与在 JavaScript 中相同。和 jq 中其他的内容一样，这些简单的值也被看做接收一个输入, 并且产生一个输出。如, `42` 是一个合法的 jq 表达式, 忽略接收的输入, 并输出 42。
 
 
-## [数组构造 - `[]`](#array-construction)
+## [数组构造(array) - `[]`](#array-construction)
 
 与 JSON 一样，`[]` 用于构造数组，如 `[1,2,3]`。 数组的元素可以是任何 jq 表达式。所有表达式产生的所有结果都被收集到一个大数组中。你可以使用它从已知数量的值中构造一个数组（如 `[.foo, .bar, .baz]` ）或将过滤器的所有结果"收集"到一个数组中（如 `[.items[].name]`）
 
@@ -395,66 +395,71 @@ Input   {"user":"stedolan", "projects": ["jq", "wikiflow"]}
 Output  ["stedolan", "jq", "wikiflow"]
 ```
 
+## [Objects - `{}`](#objects)
+
+
+与 JSON 一样，`{}` 用于构建对象(又叫字典 `dictionary` 或哈希 `hash`)，如：`{"a": 42, "b": 17}`。
+
+
+如果 Key 是 "合理的(sensible)" (由所有字母字符组成)，则引号可以省略。Value 可以是任何表达式(如果比较复杂, 可以使用括号包起来)，表达式会将 `{}` 表达式的输入作为输入(每个过滤器都有一个输入和输出)。
+
+`{foo: .bar}`
+
+如果输入是 `{"bar":42, "baz":43}`, 那么表达式的输出为 `{"foo": 42}`。
+
+可以用来筛选一个 object 的特定字段：如果输入对象有 "user"、"title"、"id"、"content" 字段，而只需要 "user"、"title"，则可以这样写
+
+`{user: .user, title: .title}`
+
+
+因为这种用法很常见，所以有一个快捷语法：`{user, title}`。
+
+
+如果其中一个表达式生成多个结果，那么表达式将生成多个词典。如果输入是
+
+`{"user":"stedolan","titles":["JQ Primer", "More JQ"]}`
+
+那么表达式
+
+`{user, title: .titles[]}`
+
+将会生成输出
+
+```
+{"user":"stedolan", "title": "JQ Primer"}
+{"user":"stedolan", "title": "More JQ"}
+```
+
+使用括号包裹 Key ，意味着它将被当做表达式来计算 key 。使用与上述相同的输入，
+
+表达式
+
+`{(.user): .titles}`
+
+会输出
+
+`{"stedolan": ["JQ Primer", "More JQ"]}`
+
+
+[Examples](#example9)
+
+```jq
+        jq '{user, title: .titles[]}'
+-------------------------------------
+Input   {"user":"stedolan","titles":["JQ Primer", "More JQ"]}
+Output  {"user":"stedolan", "title": "JQ Primer"}
+        {"user":"stedolan", "title": "More JQ"}
+```
+
+```jq
+        jq '{(.user): .titles}'
+-------------------------------------
+Input   {"user":"stedolan","titles":["JQ Primer", "More JQ"]}
+Output  {"stedolan": ["JQ Primer", "More JQ"]}
+```
+
 ### TODO
 ------
-
-      - title: Objects - `{}`
-        body: |
-
-          Like JSON, `{}` is for constructing objects (aka
-          dictionaries or hashes), as in: `{"a": 42, "b": 17}`.
-
-          If the keys are "sensible" (all alphabetic characters), then
-          the quotes can be left off. The value can be any expression
-          (although you may need to wrap it in parentheses if it's a
-          complicated one), which gets applied to the {} expression's
-          input (remember, all filters have an input and an
-          output).
-
-              {foo: .bar}
-
-          will produce the JSON object `{"foo": 42}` if given the JSON
-          object `{"bar":42, "baz":43}`. You can use this to select
-          particular fields of an object: if the input is an object
-          with "user", "title", "id", and "content" fields and you
-          just want "user" and "title", you can write
-
-              {user: .user, title: .title}
-
-          Because that's so common, there's a shortcut syntax: `{user, title}`.
-
-          If one of the expressions produces multiple results,
-          multiple dictionaries will be produced. If the input's
-
-              {"user":"stedolan","titles":["JQ Primer", "More JQ"]}
-
-          then the expression
-
-              {user, title: .titles[]}
-
-          will produce two outputs:
-
-              {"user":"stedolan", "title": "JQ Primer"}
-              {"user":"stedolan", "title": "More JQ"}
-
-          Putting parentheses around the key means it will be evaluated as an
-          expression. With the same input as above,
-
-              {(.user): .titles}
-
-          produces
-
-              {"stedolan": ["JQ Primer", "More JQ"]}
-
-        examples:
-          - program: '{user, title: .titles[]}'
-            input: '{"user":"stedolan","titles":["JQ Primer", "More JQ"]}'
-            output:
-              - '{"user":"stedolan", "title": "JQ Primer"}'
-              - '{"user":"stedolan", "title": "More JQ"}'
-          - program: '{(.user): .titles}'
-            input: '{"user":"stedolan","titles":["JQ Primer", "More JQ"]}'
-            output: ['{"stedolan": ["JQ Primer", "More JQ"]}']
 
   - title: Builtin operators and functions
     body: |
