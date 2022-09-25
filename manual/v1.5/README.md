@@ -15,7 +15,7 @@ jq 程序就像一个过滤器：接收输入，并产生输出。有许多内�
 
 内容:
 
-- [调用jq](#Invokingjq)
+- [调用jq](#invokingjq)
 - [基本过滤器](#Basicfilters)
 - [类型和值](#TypesandValues)
 - [内置操作符和函数](#Builtinoperatorsandfunctions)
@@ -29,7 +29,7 @@ jq 程序就像一个过滤器：接收输入，并产生输出。有许多内�
 - [模块(Modules)](#Modules)
 
 
-## [调用jq](#Invokingjq)
+## [调用jq](#invokingjq)
 
 jq 过滤器运行在JSON 数据流上。jq的输入被解析为一系列由空格分隔的JSON 值，它们一次一个地通过jq 的过滤器。过滤器的输出被写入标准输出，再次作为一系列由空格分隔的JSON数据。
 
